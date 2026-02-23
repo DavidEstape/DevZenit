@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Liquidación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles to hide number input arrows for a cleaner look */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden my-8">
+        
+        <!-- Header -->
+        <div class="bg-blue-600 px-8 py-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-calculator"></i>
+                Calculadora Básica de Liquidación
+            </h1>
+            <p class="text-blue-100 text-sm mt-1">Introduce los parámetros para calcular los importes</p>
+        </div>
+
+        <div class="p-8">
+            <!-- Form Section -->
+            <form onsubmit="event.preventDefault(); calcular();">
+                <!-- Fila 1: Parámetros principales -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    
+                    <!-- Input: Importe venta bruto -->
+                    <div>
+                        <label for="inputImporteBruto" class="block text-sm font-medium text-slate-700 mb-2">
+                            Importe venta bruto
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">€</span>
+                            </div>
+                            <input type="number" id="inputImporteBruto" placeholder="75,00" step="0.01" min="75" required
+                                class="pl-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                        <p id="errorImporteBruto" class="text-red-500 text-xs mt-1 hidden">El importe mínimo es 75€.</p>
+                    </div>
+
+                    <!-- Input: Nº días -->
+                    <div>
+                        <label for="inputDias" class="block text-sm font-medium text-slate-700 mb-2">
+                            Nº días
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-regular fa-calendar text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputDias" value="1" min="1" step="1" required
+                                class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- Input: % IRPF -->
+                    <div>
+                        <label for="inputIRPF" class="block text-sm font-medium text-slate-700 mb-2">
+                            % IRPF
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="inputIRPF" placeholder="2,00" step="0.1" min="2" value="2" required
+                                class="pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                        <p id="errorIRPF" class="text-red-500 text-xs mt-1 hidden">El IRPF mínimo es 2%.</p>
+                    </div>
+
+                </div>
+
+                <!-- Fila 2: Kilometraje -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Input: Kilometraje -->
+                    <div>
+                        <label for="inputKilometraje" class="block text-sm font-medium text-slate-700 mb-2">
+                            Kilometraje (Diario)
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-car text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputKilometraje" placeholder="0" min="0" step="1"
+                                class="pl-9 pr-12 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">km</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 3: Dietas -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Input: Dietas -->
+                    <div>
+                        <label for="inputDietas" class="block text-sm font-medium text-slate-700 mb-2">
+                            Días de dieta
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-utensils text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputDietas" placeholder="0" min="0" step="1"
+                                class="pl-9 pr-14 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">días</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input: Tipo de Dieta -->
+                    <div class="md:col-span-2">
+                        <label for="inputTipoDieta" class="block text-sm font-medium text-slate-700 mb-2">
+                            Tipo de dieta
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-location-dot text-slate-400"></i>
+                            </div>
+                            <select id="inputTipoDieta" class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white cursor-pointer">
+                                <option value="28.0736">Territorio español</option>
+                                <option value="50.6105">Fuera de territorio español</option>
+                                <option value="56.1473">Pernocta territorio español</option>
+                                <option value="96.1578">Pernocta fuera territorio español</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 4: Gastos justificados -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Input: Gastos justificados -->
+                    <div>
+                        <label for="inputGastosJustificados" class="block text-sm font-medium text-slate-700 mb-2">
+                            Gastos justificados (Globales)
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-receipt text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputGastosJustificados" placeholder="0,00" min="0" step="0.01"
+                                class="pl-9 pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">€</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 5: Alquiler de Material -->
+                <div class="mb-10 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-guitar text-slate-400"></i>
+                        Alquiler de Material (Diario)
+                    </h3>
+                    
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <div class="flex-grow relative">
+                            <!-- Puedes sustituir las etiquetas <option> por los valores de tu imagen -->
+                            <select id="selectMaterial" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer">
+                                <option value="105.2632">Altavoces (105,26€)</option>
+                                <option value="73.6842">Bajos y complementos (73,68€)</option>
+                                <option value="105.2632">Batería acústica (105,26€)</option>
+                                <option value="105.2632">Batería eléctrica (105,26€)</option>
+                                <option value="5.2632">Cables (5,26€)</option>
+                                <option value="84.2105">Clarinete (84,21€)</option>
+                                <option value="105.2632">Contrabajo (105,26€)</option>
+                                <option value="73,6842">Guitarra acústica (73,68€)</option>
+                                <option value="63,1579">Guitarra clásica (63,16€)</option>
+                                <option value="105.2632">Guitarra eléctrica (105,26€)</option>                                 
+                                <option value="52.6316">Micrófono (52,63€)</option>
+                                <option value="63,1579">Ordenador (63,16€)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-24 relative">
+                            <input type="number" id="inputMaterialQty" value="1" min="1" step="1" title="Cantidad"
+                                class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                        </div>
+                        <button type="button" onclick="agregarMaterial()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-6 py-2.5 rounded-lg transition-colors flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-plus text-sm"></i> Añadir
+                        </button>
+                    </div>
+                    
+                    <!-- Lista de material añadido -->
+                    <ul id="listaMaterialUI" class="space-y-2 mb-4">
+                        <li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>
+                    </ul>
+                    
+                    <div class="flex justify-between items-center border-t border-slate-200 pt-3">
+                        <span class="text-sm font-medium text-slate-600">Total alquiler diario:</span>
+                        <span class="text-lg font-bold text-slate-900" id="totalMaterialUI">0,00 €</span>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="flex justify-center mb-10">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 active:scale-95">
+                        <i class="fa-solid fa-play text-sm"></i>
+                        Calcular Liquidación
+                    </button>
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <div class="border-t border-slate-200 mb-8"></div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                    Desglose de la Liquidación
+                </h2>
+                
+                <!-- SINGLE DAY VIEW (1 Day) -->
+                <div id="singleDayView" class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider">
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold">Concepto</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-sm" id="lblImporteBruto"><i class="fa-solid fa-microphone text-slate-400 mr-2"></i>Caché</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resImporteBruto">0,00 €</td>
+                            </tr>
+                            <tr id="rowSingleKm" class="hover:bg-slate-50 transition-colors hidden bg-slate-50/50">
+                                <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-sm"><i class="fa-solid fa-car text-slate-400 mr-2"></i>Kilometraje</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resSingleKm">0,00 €</td>
+                            </tr>
+                            <tr id="rowSingleDieta" class="hover:bg-slate-50 transition-colors hidden bg-slate-50/50">
+                                <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-sm"><i class="fa-solid fa-utensils text-slate-400 mr-2"></i>Dietas</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resSingleDieta">0,00 €</td>
+                            </tr>
+                            <tr id="rowSingleAlquiler" class="hover:bg-slate-50 transition-colors hidden bg-slate-50/50">
+                                <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-sm"><i class="fa-solid fa-guitar text-slate-400 mr-2"></i>Alquiler Material</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resSingleAlquiler">0,00 €</td>
+                            </tr>
+                            <tr id="rowSingleGastos" class="hover:bg-slate-50 transition-colors hidden bg-slate-100/50 border-t border-slate-200">
+                                <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-sm"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Gastos justificados</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resSingleGastos">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors border-t border-slate-200">
+                                <td class="py-3 px-4 font-medium text-slate-700">Comisión</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resComision">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">Base liquidable</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resCoste">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">Seg. Social</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resSegSocial">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">IRPF</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resIRPF">0,00 €</td>
+                            </tr>
+                            <tr class="bg-blue-50/50">
+                                <td class="py-4 px-4 font-bold text-slate-900 text-lg rounded-bl-xl">A liquidar</td>
+                                <td class="py-4 px-4 text-right tabular-nums font-bold text-blue-700 text-xl rounded-br-xl" id="resALiquidar">0,00 €</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MULTI DAY VIEW (>= 2 Days) -->
+                <div id="multiDayView" class="hidden overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold">Día / Concepto</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Importe</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Comisión</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Base liquidable</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Seg. Soc.</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">IRPF</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">A liquidar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="multiDayBody" class="divide-y divide-slate-100">
+                            <!-- JS generates rows here -->
+                        </tbody>
+                        <tfoot id="multiDayFoot" class="bg-blue-50/50 border-t-2 border-slate-200">
+                            <!-- JS generates totals here -->
+                        </tfoot>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Formateador de moneda para euros (formato español)
+        const currencyFormatter = new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 2
+        });
+
+        // --- GESTIÓN DINÁMICA DE ALQUILER DE MATERIAL ---
+        let listaMaterial = [];
+
+        function agregarMaterial() {
+            const select = document.getElementById('selectMaterial');
+            const qtyInput = document.getElementById('inputMaterialQty');
+            const qty = parseInt(qtyInput.value) || 1;
+            const price = parseFloat(select.value);
+            // Extraer el nombre limpiando la parte del precio entre paréntesis
+            const name = select.options[select.selectedIndex].text.split(' (')[0]; 
+
+            listaMaterial.push({ name, price, qty });
+            renderMaterial();
+            qtyInput.value = 1; // reset cantidad
+        }
+
+        function eliminarMaterial(index) {
+            listaMaterial.splice(index, 1);
+            renderMaterial();
+        }
+
+        function renderMaterial() {
+            const ul = document.getElementById('listaMaterialUI');
+            const totalUI = document.getElementById('totalMaterialUI');
+            ul.innerHTML = '';
+            let total = 0;
+
+            listaMaterial.forEach((item, index) => {
+                const sum = item.price * item.qty;
+                total += sum;
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white p-3 rounded-lg border border-slate-100 shadow-sm text-sm';
+                li.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded text-xs">${item.qty}x</span>
+                        <span class="font-medium text-slate-700">${item.name}</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-slate-600 tabular-nums">${currencyFormatter.format(sum)}</span>
+                        <button type="button" onclick="eliminarMaterial(${index})" class="text-red-400 hover:text-red-600 transition-colors" title="Eliminar">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+
+            if (listaMaterial.length === 0) {
+                ul.innerHTML = '<li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>';
+            }
+
+            totalUI.textContent = currencyFormatter.format(total);
+        }
+
+        // --- FUNCIONES DE CÁLCULO ---
+
+        // Función auxiliar que encapsula el cálculo de un solo "tramo" o día (Caché principal)
+        function calcularDia(bruto, porcentajeIRPF) {
+            const comision = bruto * 0.05; 
+            const coste = bruto - comision; 
+            
+            // Cálculo de Seguridad Social por tramos
+            let segSocial = 0;
+            if (bruto <= 75) {
+                segSocial = 21;
+            } else if (bruto <= 477.25) {
+                const intermedio1 = coste * 0.25009;
+                const intermedio2 = (coste - intermedio1) * 0.0655;
+                segSocial = intermedio1 + intermedio2 + 2.5;
+            } else if (bruto <= 729.421578947369) {
+                segSocial = 138.86;
+            } else if (bruto <= 1250.26368421053) {
+                segSocial = 176.49;
+            } else if (bruto <= 2023.02157894737) {
+                segSocial = 221.41;
+            } else if (bruto <= 2287.30578947368) {
+                segSocial = 288.52;
+            } else if (bruto <= 2732.66368421053) {
+                segSocial = 294.67;
+            } else if (bruto <= 3158.85315789474) {
+                segSocial = 300.77;
+            } else {
+                segSocial = 310.27;
+            }
+
+            const baseLiq = coste - segSocial; 
+            const irpf = baseLiq * (porcentajeIRPF / 100); 
+            const aLiquidar = baseLiq - irpf; 
+
+            return {
+                bruto: bruto,
+                comision: comision,
+                coste: coste,
+                segSocial: segSocial,
+                baseLiq: baseLiq,
+                irpf: irpf,
+                aLiquidar: aLiquidar
+            };
+        }
+
+        function calcular() {
+            // 1. OBTENER LOS PARÁMETROS DE ENTRADA
+            let inputImporteBruto = parseFloat(document.getElementById('inputImporteBruto').value) || 0;
+            let inputDias = parseInt(document.getElementById('inputDias').value) || 1; 
+            let inputIRPF = parseFloat(document.getElementById('inputIRPF').value) || 0;
+            let inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            let inputDietas = parseInt(document.getElementById('inputDietas').value) || 0;
+            let inputGastosJustificados = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
+            let tarifaDieta = parseFloat(document.getElementById('inputTipoDieta').value) || 28.0736;
+            
+            // Calcular coste total del material de la lista generada
+            let totalAlquilerDiario = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            
+            const rawImporteBruto = document.getElementById('inputImporteBruto').value;
+            const errorImporteBruto = document.getElementById('errorImporteBruto');
+            const errorIRPF = document.getElementById('errorIRPF');
+
+            // Validar mínimo de días
+            if (inputDias < 1) {
+                inputDias = 1;
+                document.getElementById('inputDias').value = 1;
+            }
+
+            // Validar que los días de dietas no superen los días de trabajo
+            if (inputDietas > inputDias) {
+                inputDietas = inputDias;
+                document.getElementById('inputDietas').value = inputDias;
+            }
+
+            // Validar importe mínimo acorde al número de días (Mínimo 75€ por día)
+            const minBrutoRequerido = inputDias * 75;
+            if (rawImporteBruto !== "" && inputImporteBruto < minBrutoRequerido) {
+                inputImporteBruto = minBrutoRequerido; 
+                document.getElementById('inputImporteBruto').value = minBrutoRequerido; 
+                errorImporteBruto.textContent = `El importe mínimo para ${inputDias} día(s) es ${minBrutoRequerido}€.`;
+                errorImporteBruto.classList.remove('hidden'); 
+            } else {
+                errorImporteBruto.classList.add('hidden'); 
+            }
+
+            // Validar IRPF mínimo del 2%
+            if (inputIRPF < 2) {
+                inputIRPF = 2; 
+                document.getElementById('inputIRPF').value = 2; 
+                errorIRPF.classList.remove('hidden'); 
+            } else {
+                errorIRPF.classList.add('hidden'); 
+            }
+
+            // Mostrar la sección de resultados
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // 2. RENDERIZAR RESULTADOS
+            const singleDayView = document.getElementById('singleDayView');
+            const multiDayView = document.getElementById('multiDayView');
+
+            // --- LÓGICA DE DISTRIBUCIÓN (PRESUPUESTO / TOPE EN CASCADA) ---
+            // Bucket = Dinero disponible después de garantizar 75€/día de caché
+            let bucket = inputImporteBruto - (inputDias * 75);
+            let diasData = [];
+
+            // Inicializamos la estructura de días
+            for (let i = 1; i <= inputDias; i++) {
+                diasData.push({
+                    dia: i,
+                    cache: 75,
+                    km: 0,
+                    dieta: 0,
+                    alquiler: 0
+                });
+            }
+
+            // Prioridad 1: Kilometraje (Prorrateo diario EQUITATIVO)
+            if (inputKilometraje > 0) {
+                let reqKm = inputKilometraje * 0.2737;
+                let totalReqKm = reqKm * inputDias;
+                let availableKm = Math.min(totalReqKm, bucket);
+                let perDayKm = availableKm / inputDias; // Reparte la bolsa equitativamente
+                
+                for (let i = 0; i < inputDias; i++) {
+                    diasData[i].km = perDayKm;
+                    bucket -= perDayKm;
+                }
+                bucket = Math.max(0, bucket); // Limpiar posibles desajustes de decimales
+            }
+
+            // Prioridad 2: Dietas (Prorrateo EQUITATIVO por días de dieta indicados)
+            if (inputDietas > 0) {
+                let totalReqDieta = tarifaDieta * inputDietas;
+                let availableDieta = Math.min(totalReqDieta, bucket);
+                let perDayDieta = availableDieta / inputDietas; 
+                
+                for (let i = 0; i < inputDietas; i++) {
+                    diasData[i].dieta = perDayDieta;
+                    bucket -= perDayDieta;
+                }
+                bucket = Math.max(0, bucket);
+            }
+
+            // Prioridad 3: Gastos Justificados (Global)
+            let gastosJustificadosBruto = 0;
+            if (inputGastosJustificados > 0 && bucket > 0) {
+                gastosJustificadosBruto = Math.min(inputGastosJustificados, bucket);
+                bucket -= gastosJustificadosBruto;
+            }
+
+            // Prioridad 4: Alquiler de Material (Prorrateo diario EQUITATIVO)
+            if (totalAlquilerDiario > 0) {
+                let totalReqAlquiler = totalAlquilerDiario * inputDias;
+                let availableAlquiler = Math.min(totalReqAlquiler, bucket);
+                let perDayAlquiler = availableAlquiler / inputDias;
+                
+                for (let i = 0; i < inputDias; i++) {
+                    diasData[i].alquiler = perDayAlquiler;
+                    bucket -= perDayAlquiler;
+                }
+                bucket = Math.max(0, bucket);
+            }
+
+            // Si después de todo aún sobra dinero en el bucket, se reinvierte en el caché del último día
+            if (bucket > 0) {
+                diasData[diasData.length - 1].cache += bucket;
+                bucket = 0;
+            }
+
+            // --- VISTAS ---
+            if (inputDias === 1) {
+                // MODO 1 DÍA (Vista Vertical Original)
+                singleDayView.classList.remove('hidden');
+                multiDayView.classList.add('hidden');
+
+                const dayData = diasData[0];
+                const res = calcularDia(dayData.cache, inputIRPF);
+                
+                let totalBruto = res.bruto;
+                let totalComision = res.comision;
+                let totalCoste = res.coste;
+                let totalSegSocial = res.segSocial;
+                let totalIRPF = res.irpf;
+                let totalALiquidar = res.aLiquidar;
+
+                const rowSingleKm = document.getElementById('rowSingleKm');
+                const rowSingleDieta = document.getElementById('rowSingleDieta');
+                const rowSingleAlquiler = document.getElementById('rowSingleAlquiler');
+                const rowSingleGastos = document.getElementById('rowSingleGastos');
+
+                // Kilometraje
+                if (dayData.km > 0) {
+                    const kmComision = dayData.km * 0.05;
+                    const kmBaseLiq = dayData.km - kmComision;
+                    
+                    totalBruto += dayData.km;
+                    totalComision += kmComision;
+                    totalCoste += kmBaseLiq;
+                    totalALiquidar += kmBaseLiq;
+
+                    document.getElementById('resSingleKm').textContent = currencyFormatter.format(dayData.km);
+                    if (rowSingleKm) rowSingleKm.classList.remove('hidden');
+                } else {
+                    if (rowSingleKm) rowSingleKm.classList.add('hidden');
+                }
+
+                // Dietas
+                if (dayData.dieta > 0) {
+                    const dietaComision = dayData.dieta * 0.05;
+                    const dietaBaseLiq = dayData.dieta - dietaComision;
+                    
+                    totalBruto += dayData.dieta;
+                    totalComision += dietaComision;
+                    totalCoste += dietaBaseLiq;
+                    totalALiquidar += dietaBaseLiq;
+
+                    document.getElementById('resSingleDieta').textContent = currencyFormatter.format(dayData.dieta);
+                    if (rowSingleDieta) rowSingleDieta.classList.remove('hidden');
+                } else {
+                    if (rowSingleDieta) rowSingleDieta.classList.add('hidden');
+                }
+
+                // Alquiler
+                if (dayData.alquiler > 0) {
+                    const alquilerComision = dayData.alquiler * 0.05;
+                    const alquilerBaseLiq = dayData.alquiler - alquilerComision;
+                    
+                    totalBruto += dayData.alquiler;
+                    totalComision += alquilerComision;
+                    totalCoste += alquilerBaseLiq;
+                    totalALiquidar += alquilerBaseLiq;
+
+                    document.getElementById('resSingleAlquiler').textContent = currencyFormatter.format(dayData.alquiler);
+                    if (rowSingleAlquiler) rowSingleAlquiler.classList.remove('hidden');
+                } else {
+                    if (rowSingleAlquiler) rowSingleAlquiler.classList.add('hidden');
+                }
+
+                // Inyección global de Gastos justificados
+                if (gastosJustificadosBruto > 0) {
+                    const gastosComision = gastosJustificadosBruto * 0.05;
+                    const gastosBaseLiq = gastosJustificadosBruto - gastosComision;
+                    
+                    totalBruto += gastosJustificadosBruto;
+                    totalComision += gastosComision;
+                    totalCoste += gastosBaseLiq;
+                    totalALiquidar += gastosBaseLiq;
+
+                    document.getElementById('resSingleGastos').textContent = currencyFormatter.format(gastosJustificadosBruto);
+                    if (rowSingleGastos) rowSingleGastos.classList.remove('hidden');
+                } else {
+                    if (rowSingleGastos) rowSingleGastos.classList.add('hidden');
+                }
+
+                document.getElementById('resImporteBruto').textContent = currencyFormatter.format(res.bruto); // Muestra solo la parte del caché
+                document.getElementById('resComision').textContent = "- " + currencyFormatter.format(totalComision);
+                document.getElementById('resCoste').textContent = currencyFormatter.format(totalCoste); 
+                document.getElementById('resSegSocial').textContent = "- " + currencyFormatter.format(totalSegSocial);
+                document.getElementById('resIRPF').textContent = "- " + currencyFormatter.format(totalIRPF);
+                document.getElementById('resALiquidar').textContent = currencyFormatter.format(totalALiquidar);
+                
+                // Pequeño feedback visual
+                const totalElement = document.getElementById('resALiquidar');
+                totalElement.classList.add('scale-105', 'transition-transform');
+                setTimeout(() => totalElement.classList.remove('scale-105'), 200);
+
+            } else {
+                // MODO MULTI-DÍA (Matriz Horizontal)
+                singleDayView.classList.add('hidden');
+                multiDayView.classList.remove('hidden');
+
+                const tbody = document.getElementById('multiDayBody');
+                const tfoot = document.getElementById('multiDayFoot');
+                tbody.innerHTML = ''; // Limpiar filas anteriores
+
+                let totalBruto = 0, totalComision = 0, totalCoste = 0, totalSegSocial = 0, totalIRPF = 0, totalALiquidar = 0;
+
+                for (let i = 0; i < diasData.length; i++) {
+                    const dayData = diasData[i];
+                    const diaNum = dayData.dia;
+
+                    const res = calcularDia(dayData.cache, inputIRPF);
+
+                    // Acumular totales de Caché
+                    totalBruto += res.bruto;
+                    totalComision += res.comision;
+                    totalCoste += res.coste;
+                    totalSegSocial += res.segSocial;
+                    totalIRPF += res.irpf;
+                    totalALiquidar += res.aLiquidar;
+
+                    // Fila cabecera del día
+                    const trDia = document.createElement('tr');
+                    trDia.className = 'bg-blue-50/40 border-y border-blue-100';
+                    trDia.innerHTML = `
+                        <td colspan="7" class="py-2 px-4 font-bold text-blue-800 text-sm"><i class="fa-regular fa-calendar-days mr-2"></i>Día ${diaNum}</td>
+                    `;
+                    tbody.appendChild(trDia);
+
+                    // Crear e inyectar fila de CACHÉ en la tabla
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition-colors text-sm';
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-microphone text-slate-400 mr-2"></i>Caché</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(res.bruto)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.comision)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(res.coste)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.segSocial)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.irpf)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(res.aLiquidar)}</td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    // Crear e inyectar fila de KILOMETRAJE en la tabla
+                    if (dayData.km > 0) {
+                        const kmComision = dayData.km * 0.05;
+                        const kmBaseLiq = dayData.km - kmComision;
+                        
+                        totalBruto += dayData.km;
+                        totalComision += kmComision;
+                        totalCoste += kmBaseLiq;
+                        totalALiquidar += kmBaseLiq;
+
+                        const trKm = document.createElement('tr');
+                        trKm.className = 'hover:bg-slate-50 transition-colors text-sm';
+                        trKm.innerHTML = `
+                            <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-car text-slate-400 mr-2"></i>Kilometraje</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.km)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(kmComision)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(kmBaseLiq)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(kmBaseLiq)}</td>
+                        `;
+                        tbody.appendChild(trKm);
+                    }
+
+                    // Crear e inyectar fila de DIETAS en la tabla
+                    if (dayData.dieta > 0) {
+                        const dietaComision = dayData.dieta * 0.05;
+                        const dietaBaseLiq = dayData.dieta - dietaComision;
+                        
+                        totalBruto += dayData.dieta;
+                        totalComision += dietaComision;
+                        totalCoste += dietaBaseLiq;
+                        totalALiquidar += dietaBaseLiq;
+
+                        const trDieta = document.createElement('tr');
+                        trDieta.className = 'hover:bg-slate-50 transition-colors text-sm';
+                        trDieta.innerHTML = `
+                            <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-utensils text-slate-400 mr-2"></i>Dietas</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.dieta)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(dietaComision)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dietaBaseLiq)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(dietaBaseLiq)}</td>
+                        `;
+                        tbody.appendChild(trDieta);
+                    }
+
+                    // Crear e inyectar fila de ALQUILER DE MATERIAL en la tabla
+                    if (dayData.alquiler > 0) {
+                        const alquilerComision = dayData.alquiler * 0.05;
+                        const alquilerBaseLiq = dayData.alquiler - alquilerComision;
+                        
+                        totalBruto += dayData.alquiler;
+                        totalComision += alquilerComision;
+                        totalCoste += alquilerBaseLiq;
+                        totalALiquidar += alquilerBaseLiq;
+
+                        const trAlquiler = document.createElement('tr');
+                        trAlquiler.className = 'hover:bg-slate-50 transition-colors text-sm';
+                        trAlquiler.innerHTML = `
+                            <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-guitar text-slate-400 mr-2"></i>Alquiler Material</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.alquiler)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(alquilerComision)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(alquilerBaseLiq)}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(alquilerBaseLiq)}</td>
+                        `;
+                        tbody.appendChild(trAlquiler);
+                    }
+                }
+
+                // Inyectar fila agrupada para GASTOS JUSTIFICADOS al final de todo
+                if (gastosJustificadosBruto > 0) {
+                    const gastosComision = gastosJustificadosBruto * 0.05;
+                    const gastosBaseLiq = gastosJustificadosBruto - gastosComision;
+                    
+                    totalBruto += gastosJustificadosBruto;
+                    totalComision += gastosComision;
+                    totalCoste += gastosBaseLiq;
+                    totalALiquidar += gastosBaseLiq;
+
+                    const trGastos = document.createElement('tr');
+                    trGastos.className = 'hover:bg-slate-50 transition-colors text-sm bg-slate-100/50 border-t-2 border-slate-200';
+                    trGastos.innerHTML = `
+                        <td class="py-3 px-4 font-bold text-slate-700 text-xs"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Gastos Justificados</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(gastosJustificadosBruto)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(gastosComision)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(gastosBaseLiq)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(gastosBaseLiq)}</td>
+                    `;
+                    tbody.appendChild(trGastos);
+                }
+
+                // Generar y actualizar fila de Totales
+                tfoot.innerHTML = `
+                    <tr>
+                        <td class="py-4 px-4 font-bold text-slate-900 rounded-bl-xl uppercase text-xs tracking-wider">Total</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalBruto)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalComision)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalCoste)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalSegSocial)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalIRPF)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-blue-700 text-lg rounded-br-xl" id="resMultiTotal">${currencyFormatter.format(totalALiquidar)}</td>
+                    </tr>
+                `;
+
+                // Pequeño feedback visual para la vista multi-día
+                const totalElement = document.getElementById('resMultiTotal');
+                totalElement.classList.add('scale-105', 'transition-transform');
+                setTimeout(() => totalElement.classList.remove('scale-105'), 200);
+            }
+        }
+    </script>
+</body>
+</html>
