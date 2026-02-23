@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Liquidación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles to hide number input arrows for a cleaner look */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-blue-600 px-8 py-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-calculator"></i>
+                Calculadora Básica de Liquidación
+            </h1>
+            <p class="text-blue-100 text-sm mt-1">Introduce los parámetros para calcular los importes</p>
+        </div>
+
+        <div class="p-8">
+            <!-- Form Section -->
+            <form onsubmit="event.preventDefault(); calcular();">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    
+                    <!-- Input: Importe venta bruto -->
+                    <div>
+                        <label for="inputImporteBruto" class="block text-sm font-medium text-slate-700 mb-2">
+                            Importe venta bruto
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">€</span>
+                            </div>
+                            <input type="number" id="inputImporteBruto" placeholder="75,00" step="0.01" min="75" required
+                                class="pl-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                        <p id="errorImporteBruto" class="text-red-500 text-xs mt-1 hidden">El importe mínimo es 75€.</p>
+                    </div>
+
+                    <!-- Input: Nº días -->
+                    <div>
+                        <label for="inputDias" class="block text-sm font-medium text-slate-700 mb-2">
+                            Nº días
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-regular fa-calendar text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputDias" value="1" min="1" step="1" required
+                                class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- Input: % IRPF -->
+                    <div>
+                        <label for="inputIRPF" class="block text-sm font-medium text-slate-700 mb-2">
+                            % IRPF
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="inputIRPF" placeholder="2,00" step="0.1" min="2" value="2" required
+                                class="pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                        <p id="errorIRPF" class="text-red-500 text-xs mt-1 hidden">El IRPF mínimo es 2%.</p>
+                    </div>
+
+                </div>
+
+                <!-- Action Button -->
+                <div class="flex justify-center mb-10">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 active:scale-95">
+                        <i class="fa-solid fa-play text-sm"></i>
+                        Calcular Liquidación
+                    </button>
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <div class="border-t border-slate-200 mb-8"></div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                    Desglose de la Liquidación
+                </h2>
+                
+                <!-- SINGLE DAY VIEW (1 Day) -->
+                <div id="singleDayView" class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider">
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold">Concepto</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">Importe bruto</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resImporteBruto">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">Comisión</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resComision">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">Base liquidable</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resCoste">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">Seg. Social</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resSegSocial">0,00 €</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-medium text-slate-700">IRPF</td>
+                                <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resIRPF">0,00 €</td>
+                            </tr>
+                            <tr class="bg-blue-50/50">
+                                <td class="py-4 px-4 font-bold text-slate-900 text-lg rounded-bl-xl">A liquidar</td>
+                                <td class="py-4 px-4 text-right tabular-nums font-bold text-blue-700 text-xl rounded-br-xl" id="resALiquidar">0,00 €</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MULTI DAY VIEW (>= 2 Days) -->
+                <div id="multiDayView" class="hidden overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold">Día</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Importe</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Comisión</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Base liquidable</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Seg. Soc.</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">IRPF</th>
+                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">A liquidar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="multiDayBody" class="divide-y divide-slate-100">
+                            <!-- JS generates rows here -->
+                        </tbody>
+                        <tfoot id="multiDayFoot" class="bg-blue-50/50 border-t-2 border-slate-200">
+                            <!-- JS generates totals here -->
+                        </tfoot>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Formateador de moneda para euros (formato español)
+        const currencyFormatter = new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 2
+        });
+
+        // Función auxiliar que encapsula el cálculo de un solo "tramo" o día
+        function calcularDia(bruto, porcentajeIRPF) {
+            const comision = bruto * 0.05; 
+            const coste = bruto - comision; 
+            
+            // Cálculo de Seguridad Social por tramos
+            let segSocial = 0;
+            if (bruto <= 75) {
+                segSocial = 21;
+            } else if (bruto <= 477.25) {
+                const intermedio1 = coste * 0.25009;
+                const intermedio2 = (coste - intermedio1) * 0.0655;
+                segSocial = intermedio1 + intermedio2 + 2.5;
+            } else if (bruto <= 729.421578947369) {
+                segSocial = 138.86;
+            } else if (bruto <= 1250.26368421053) {
+                segSocial = 176.49;
+            } else if (bruto <= 2023.02157894737) {
+                segSocial = 221.41;
+            } else if (bruto <= 2287.30578947368) {
+                segSocial = 288.52;
+            } else if (bruto <= 2732.66368421053) {
+                segSocial = 294.67;
+            } else if (bruto <= 3158.85315789474) {
+                segSocial = 300.77;
+            } else {
+                segSocial = 310.27;
+            }
+
+            const baseLiq = coste - segSocial; 
+            const irpf = baseLiq * (porcentajeIRPF / 100); 
+            const aLiquidar = baseLiq - irpf; 
+
+            return {
+                bruto: bruto,
+                comision: comision,
+                coste: coste,
+                segSocial: segSocial,
+                baseLiq: baseLiq,
+                irpf: irpf,
+                aLiquidar: aLiquidar
+            };
+        }
+
+        function calcular() {
+            // 1. OBTENER LOS PARÁMETROS DE ENTRADA
+            let inputImporteBruto = parseFloat(document.getElementById('inputImporteBruto').value) || 0;
+            let inputDias = parseInt(document.getElementById('inputDias').value) || 1; 
+            let inputIRPF = parseFloat(document.getElementById('inputIRPF').value) || 0;
+            
+            const rawImporteBruto = document.getElementById('inputImporteBruto').value;
+            const errorImporteBruto = document.getElementById('errorImporteBruto');
+            const errorIRPF = document.getElementById('errorIRPF');
+
+            // Validar mínimo de días (por si el usuario lo borra)
+            if (inputDias < 1) {
+                inputDias = 1;
+                document.getElementById('inputDias').value = 1;
+            }
+
+            // Validar importe mínimo acorde al número de días (Mínimo 75€ por día)
+            const minBrutoRequerido = inputDias * 75;
+            if (rawImporteBruto !== "" && inputImporteBruto < minBrutoRequerido) {
+                inputImporteBruto = minBrutoRequerido; 
+                document.getElementById('inputImporteBruto').value = minBrutoRequerido; 
+                errorImporteBruto.textContent = `El importe mínimo para ${inputDias} día(s) es ${minBrutoRequerido}€.`;
+                errorImporteBruto.classList.remove('hidden'); 
+            } else {
+                errorImporteBruto.classList.add('hidden'); 
+            }
+
+            // Validar IRPF mínimo del 2%
+            if (inputIRPF < 2) {
+                inputIRPF = 2; 
+                document.getElementById('inputIRPF').value = 2; 
+                errorIRPF.classList.remove('hidden'); 
+            } else {
+                errorIRPF.classList.add('hidden'); 
+            }
+
+            // Mostrar la sección de resultados
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // 2. RENDERIZAR RESULTADOS
+            const singleDayView = document.getElementById('singleDayView');
+            const multiDayView = document.getElementById('multiDayView');
+
+            if (inputDias === 1) {
+                // MODO 1 DÍA (Vista Vertical Original)
+                singleDayView.classList.remove('hidden');
+                multiDayView.classList.add('hidden');
+
+                const res = calcularDia(inputImporteBruto, inputIRPF);
+
+                document.getElementById('resImporteBruto').textContent = currencyFormatter.format(res.bruto);
+                document.getElementById('resComision').textContent = "- " + currencyFormatter.format(res.comision);
+                document.getElementById('resCoste').textContent = currencyFormatter.format(res.coste); 
+                document.getElementById('resSegSocial').textContent = "- " + currencyFormatter.format(res.segSocial);
+                document.getElementById('resIRPF').textContent = "- " + currencyFormatter.format(res.irpf);
+                document.getElementById('resALiquidar').textContent = currencyFormatter.format(res.aLiquidar);
+                
+                // Pequeño feedback visual
+                const totalElement = document.getElementById('resALiquidar');
+                totalElement.classList.add('scale-105', 'transition-transform');
+                setTimeout(() => totalElement.classList.remove('scale-105'), 200);
+
+            } else {
+                // MODO MULTI-DÍA (Matriz Horizontal)
+                singleDayView.classList.add('hidden');
+                multiDayView.classList.remove('hidden');
+
+                const tbody = document.getElementById('multiDayBody');
+                const tfoot = document.getElementById('multiDayFoot');
+                tbody.innerHTML = ''; // Limpiar filas anteriores
+
+                let totalBruto = 0, totalComision = 0, totalCoste = 0, totalSegSocial = 0, totalBaseLiq = 0, totalIRPF = 0, totalALiquidar = 0;
+
+                for (let i = 1; i <= inputDias; i++) {
+                    let currentBruto = 75; // Valor fijo para días previos
+                    
+                    if (i === inputDias) {
+                        // El último día asume el importe bruto restante
+                        currentBruto = inputImporteBruto - (75 * (inputDias - 1));
+                    }
+
+                    const res = calcularDia(currentBruto, inputIRPF);
+
+                    // Acumular totales
+                    totalBruto += res.bruto;
+                    totalComision += res.comision;
+                    totalCoste += res.coste;
+                    totalSegSocial += res.segSocial;
+                    totalBaseLiq += res.baseLiq;
+                    totalIRPF += res.irpf;
+                    totalALiquidar += res.aLiquidar;
+
+                    // Crear e inyectar fila en la tabla
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition-colors text-sm';
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-medium text-slate-700">Día ${i}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(res.bruto)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.comision)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(res.coste)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.segSocial)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.irpf)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(res.aLiquidar)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+
+                // Generar y actualizar fila de Totales
+                tfoot.innerHTML = `
+                    <tr>
+                        <td class="py-4 px-4 font-bold text-slate-900 rounded-bl-xl uppercase text-xs tracking-wider">Total</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalBruto)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalComision)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalCoste)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalSegSocial)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalIRPF)}</td>
+                        <td class="py-4 px-4 text-right tabular-nums font-bold text-blue-700 text-lg rounded-br-xl" id="resMultiTotal">${currencyFormatter.format(totalALiquidar)}</td>
+                    </tr>
+                `;
+
+                // Pequeño feedback visual para la vista multi-día
+                const totalElement = document.getElementById('resMultiTotal');
+                totalElement.classList.add('scale-105', 'transition-transform');
+                setTimeout(() => totalElement.classList.remove('scale-105'), 200);
+            }
+        }
+    </script>
+</body>
+</html>
