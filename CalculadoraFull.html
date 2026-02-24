@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Liquidación</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería para generar el PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Custom styles to hide number input arrows for a cleaner look */
@@ -26,9 +28,9 @@
         <div class="bg-blue-600 px-8 py-6 text-white">
             <h1 class="text-2xl font-bold flex items-center gap-2">
                 <i class="fa-solid fa-calculator"></i>
-                Calculadora Básica de Liquidación
+                Calculadora "Full Equip" de Liquidación
             </h1>
-            <p class="text-blue-100 text-sm mt-1">Introduce los parámetros para calcular los importes</p>
+            <p class="text-blue-100 text-sm mt-1">Introduce los datos iniciales para calcular la liquidación</p>
         </div>
 
         <div class="p-8">
@@ -83,7 +85,7 @@
 
                 </div>
 
-                <!-- Fila 2: Kilometraje -->
+                <!-- Fila 2: Kilometraje y Dietas -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <!-- Input: Kilometraje -->
                     <div>
@@ -101,10 +103,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Fila 3: Dietas -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <!-- Input: Dietas -->
                     <div>
                         <label for="inputDietas" class="block text-sm font-medium text-slate-700 mb-2">
@@ -123,7 +122,7 @@
                     </div>
 
                     <!-- Input: Tipo de Dieta -->
-                    <div class="md:col-span-2">
+                    <div>
                         <label for="inputTipoDieta" class="block text-sm font-medium text-slate-700 mb-2">
                             Tipo de dieta
                         </label>
@@ -144,7 +143,7 @@
                     </div>
                 </div>
 
-                <!-- Fila 4: Gastos justificados -->
+                <!-- Fila 3: Gastos justificados -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <!-- Input: Gastos justificados -->
                     <div>
@@ -164,51 +163,68 @@
                     </div>
                 </div>
 
-                <!-- Fila 5: Alquiler de Material -->
-                <div class="mb-10 p-6 bg-slate-50 border border-slate-200 rounded-xl">
-                    <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-guitar text-slate-400"></i>
-                        Alquiler de Material (Diario)
-                    </h3>
+                <!-- Fila 5: Alquiler de Material (Desplegable) -->
+                <div class="mb-10 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden transition-all duration-300">
+                    <!-- Cabecera / Botón Desplegable -->
+                    <button type="button" onclick="toggleMaterial()" class="w-full px-6 py-5 flex justify-between items-center text-left hover:bg-slate-100 transition-colors focus:outline-none">
+                        <div class="flex items-center justify-between w-full pr-6">
+                            <h3 id="materialHeaderTitle" class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                <i class="fa-solid fa-guitar text-slate-400"></i>
+                                <span>Añadir material de alquiler propio</span>
+                            </h3>
+                            <span id="materialHeaderTotal" class="text-sm font-bold text-slate-900 hidden">0,00 €</span>
+                        </div>
+                        <i id="materialChevron" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-300 flex-shrink-0"></i>
+                    </button>
                     
-                    <div class="flex flex-col md:flex-row gap-4 mb-4">
-                        <div class="flex-grow relative">
-                            <!-- Valores reales del cliente -->
-                            <select id="selectMaterial" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer">
-                                <option value="105.2632">Altavoces (105,26€)</option>
-                                <option value="73.6842">Bajos y complementos (73,68€)</option>
-                                <option value="105.2632">Batería acústica (105,26€)</option>
-                                <option value="105.2632">Batería eléctrica (105,26€)</option>
-                                <option value="5.2632">Cables (5,26€)</option>
-                                <option value="84.2105">Clarinete (84,21€)</option>
-                                <option value="105.2632">Contrabajo (105,26€)</option>
-                                <option value="73.6842">Guitarra acústica (73,68€)</option>
-                                <option value="63.1579">Guitarra clásica (63,16€)</option>
-                                <option value="105.2632">Guitarra eléctrica (105,26€)</option>                                 
-                                <option value="52.6316">Micrófono (52,63€)</option>
-                                <option value="63.1579">Ordenador (63,16€)</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                    <!-- Contenido Colapsable -->
+                    <div id="materialContent" class="hidden px-6 pb-6 pt-2">
+                        <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
+                            <div class="flex-grow w-full">
+                                <label for="selectMaterial" class="block text-xs font-medium text-slate-500 mb-1">
+                                    Instrumento / Material
+                                </label>
+                                <div class="relative">
+                                    <select id="selectMaterial" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer">
+                                        <option value="105.2632">Altavoces (105,26€)</option>
+                                        <option value="73.6842">Bajos y complementos (73,68€)</option>
+                                        <option value="105.2632">Batería acústica (105,26€)</option>
+                                        <option value="105.2632">Batería eléctrica (105,26€)</option>
+                                        <option value="5.2632">Cables (5,26€)</option>
+                                        <option value="84.2105">Clarinete (84,21€)</option>
+                                        <option value="105.2632">Contrabajo (105,26€)</option>
+                                        <option value="73.6842">Guitarra acústica (73,68€)</option>
+                                        <option value="63.1579">Guitarra clásica (63,16€)</option>
+                                        <option value="105.2632">Guitarra eléctrica (105,26€)</option>                                 
+                                        <option value="52.6316">Micrófono (52,63€)</option>
+                                        <option value="63.1579">Ordenador (63,16€)</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                        <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="w-full md:w-48 relative">
+                                <label for="inputMaterialQty" class="block text-xs font-medium text-slate-500 mb-1 whitespace-nowrap">
+                                    Num. Instrumentos/día
+                                </label>
+                                <input type="number" id="inputMaterialQty" value="1" min="1" step="1" title="Cantidad"
+                                    class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                            </div>
+                            <button type="button" onclick="agregarMaterial()" class="mb-[1px] bg-slate-800 hover:bg-slate-900 text-white font-medium px-6 py-2.5 rounded-lg transition-colors flex justify-center items-center gap-2 h-[46px]">
+                                <i class="fa-solid fa-plus text-sm"></i> Añadir
+                            </button>
                         </div>
-                        <div class="w-full md:w-24 relative">
-                            <input type="number" id="inputMaterialQty" value="1" min="1" step="1" title="Cantidad"
-                                class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                        
+                        <!-- Lista de material añadido -->
+                        <ul id="listaMaterialUI" class="space-y-2 mb-4">
+                            <li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>
+                        </ul>
+                        
+                        <div class="flex justify-between items-center border-t border-slate-200 pt-3">
+                            <span class="text-sm font-medium text-slate-600">Total alquiler diario:</span>
+                            <span class="text-lg font-bold text-slate-900" id="totalMaterialUI">0,00 €</span>
                         </div>
-                        <button type="button" onclick="agregarMaterial()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-6 py-2.5 rounded-lg transition-colors flex justify-center items-center gap-2">
-                            <i class="fa-solid fa-plus text-sm"></i> Añadir
-                        </button>
-                    </div>
-                    
-                    <!-- Lista de material añadido -->
-                    <ul id="listaMaterialUI" class="space-y-2 mb-4">
-                        <li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>
-                    </ul>
-                    
-                    <div class="flex justify-between items-center border-t border-slate-200 pt-3">
-                        <span class="text-sm font-medium text-slate-600">Total alquiler diario:</span>
-                        <span class="text-lg font-bold text-slate-900" id="totalMaterialUI">0,00 €</span>
                     </div>
                 </div>
 
@@ -225,68 +241,90 @@
             <div class="border-t border-slate-200 mb-8"></div>
 
             <!-- Results Section -->
-            <div id="resultsSection" class="hidden">
-                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
-                    Desglose de la Liquidación Zenit
-                </h2>
+            <div id="resultsSection" class="hidden relative">
+                
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                        Desglose de la Liquidación Zenit
+                    </h2>
+                    <!-- Botón PDF oculto temporalmente (As en la manga) 
+                    <button id="btnDownloadPDF" onclick="generarPDF()" type="button" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-file-pdf text-red-400"></i> Descargar PDF
+                    </button>
+                    -->
+                </div>
 
-                <!-- MATRIZ DE DESGLOSE (Se utiliza siempre, para 1 o más días) -->
-                <div id="multiDayView" class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                    <table class="w-full text-left border-collapse whitespace-nowrap">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
-                                <th class="py-3 px-4 border-b border-slate-200 font-semibold">Día / Concepto</th>
-                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Importe</th>
-                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Comisión</th>
-                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Base liquidable</th>
-                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Seg. Soc.</th>
-                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">IRPF</th>
-                                <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">A liquidar</th>
-                            </tr>
-                        </thead>
-                        <tbody id="multiDayBody" class="divide-y divide-slate-100">
+                <!-- Resumen oculto para el PDF -->
+                <div id="pdfSummary" class="hidden mb-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 border-b border-slate-200 pb-2">Parámetros Iniciales de Cálculo</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm" id="pdfSummaryContent">
+                        <!-- JS injects here -->
+                    </div>
+                </div>
+
+                <!-- MATRIZ DE DESGLOSE (GRID BASED) -->
+                <div id="multiDayView" class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+                    <div class="min-w-[800px] flex flex-col">
+                        <!-- Cabecera Tabla -->
+                        <div class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="py-3 px-4 font-semibold">Día / Concepto</div>
+                            <div class="py-3 px-4 font-semibold text-right">Importe</div>
+                            <div class="py-3 px-4 font-semibold text-right">Comisión</div>
+                            <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
+                            <div class="py-3 px-4 font-semibold text-right">Seg. Soc.</div>
+                            <div class="py-3 px-4 font-semibold text-right">IRPF</div>
+                            <div class="py-3 px-4 font-semibold text-right">A liquidar</div>
+                        </div>
+                        
+                        <!-- Contenido Dinámico -->
+                        <div id="multiDayBody" class="flex flex-col">
                             <!-- JS generates rows here -->
-                        </tbody>
-                        <tfoot id="multiDayFoot" class="bg-blue-50/50 border-t-2 border-slate-200">
+                        </div>
+                        
+                        <!-- Totales -->
+                        <div id="multiDayFoot" class="bg-blue-50/50 border-t-2 border-slate-200 break-inside-avoid">
                             <!-- JS generates totals here -->
-                        </tfoot>
-                    </table>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Divider Taiman -->
                 <div id="taimanDivider" class="border-t border-slate-200 my-8 hidden"></div>
 
-                <!-- Taiman Section -->
-                <div id="taimanSection" class="hidden">
+                <!-- Taiman Section (GRID BASED) -->
+                <div id="taimanSection" class="hidden break-inside-avoid">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-guitar text-slate-400"></i>
                         Desglose de la Liquidación Taiman
                     </h2>
                     
-                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                        <table class="w-full text-left border-collapse whitespace-nowrap">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
-                                    <th class="py-3 px-4 border-b border-slate-200 font-semibold">Concepto</th>
-                                    <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Importe</th>
-                                    <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Comisión</th>
-                                    <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">Base liquidable</th>
-                                    <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">7% IRPF</th>
-                                    <th class="py-3 px-4 border-b border-slate-200 font-semibold text-right">A liquidar</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr class="hover:bg-slate-50 transition-colors text-sm">
-                                    <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-file-invoice text-slate-400 mr-2"></i>Liquidación Taiman</td>
-                                    <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resTaimanImporte">0,00 €</td>
-                                    <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resTaimanComision">0,00 €</td>
-                                    <td class="py-3 px-4 text-right tabular-nums text-slate-900" id="resTaimanBaseLiq">0,00 €</td>
-                                    <td class="py-3 px-4 text-right tabular-nums text-red-600" id="resTaimanIRPF">0,00 €</td>
-                                    <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold" id="resTaimanALiquidar">0,00 €</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+                        <div class="min-w-[800px] flex flex-col">
+                            <!-- Cabecera Tabla Taiman -->
+                            <div class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                                <div class="py-3 px-4 font-semibold">Concepto</div>
+                                <div class="py-3 px-4 font-semibold text-right">Importe</div>
+                                <div class="py-3 px-4 font-semibold text-right">Comisión</div>
+                                <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
+                                <div class="py-3 px-4 font-semibold text-right text-transparent select-none">-</div> <!-- Spacer invisible para cuadrar columnas -->
+                                <div class="py-3 px-4 font-semibold text-right">7% IRPF</div>
+                                <div class="py-3 px-4 font-semibold text-right">A liquidar</div>
+                            </div>
+                            
+                            <!-- Contenido Taiman -->
+                            <div class="bg-purple-50/50">
+                                <div class="py-4 px-4 hover:bg-purple-100/50 transition-colors text-sm grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                                    <div class="font-bold text-purple-600 uppercase text-xs tracking-wider flex items-center"><i class="fa-solid fa-file-invoice text-purple-500 mr-2"></i>Liquidación Taiman</div>
+                                    <div class="text-right tabular-nums font-bold text-slate-900" id="resTaimanImporte">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-red-600" id="resTaimanComision">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-slate-900" id="resTaimanBaseLiq">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-slate-400">-</div>
+                                    <div class="text-right tabular-nums font-bold text-red-600" id="resTaimanIRPF">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-purple-700 text-lg" id="resTaimanALiquidar">0,00 €</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -305,6 +343,19 @@
 
         // --- GESTIÓN DINÁMICA DE ALQUILER DE MATERIAL ---
         let listaMaterial = [];
+
+        function toggleMaterial() {
+            const content = document.getElementById('materialContent');
+            const chevron = document.getElementById('materialChevron');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
 
         function agregarMaterial() {
             const select = document.getElementById('selectMaterial');
@@ -355,6 +406,19 @@
             }
 
             totalUI.textContent = currencyFormatter.format(total);
+
+            // Actualización de la cabecera dinámica (Acordeón)
+            const headerTitleSpan = document.querySelector('#materialHeaderTitle span');
+            const headerTotalSpan = document.getElementById('materialHeaderTotal');
+            
+            if (listaMaterial.length > 0) {
+                headerTitleSpan.textContent = 'Modificar material de alquiler propio';
+                headerTotalSpan.textContent = currencyFormatter.format(total);
+                headerTotalSpan.classList.remove('hidden');
+            } else {
+                headerTitleSpan.textContent = 'Añadir material de alquiler propio';
+                headerTotalSpan.classList.add('hidden');
+            }
         }
 
         // --- FUNCIONES DE CÁLCULO ---
@@ -489,6 +553,26 @@
             // Mostrar la sección de resultados
             document.getElementById('resultsSection').classList.remove('hidden');
 
+            // --- RELLENAR RESUMEN PARA EL PDF ---
+            const dietSelect = document.getElementById('inputTipoDieta');
+            const dietText = dietSelect.options[dietSelect.selectedIndex].text;
+            
+            let materialSummary = 'Ningún material añadido';
+            if (listaMaterial.length > 0) {
+                materialSummary = listaMaterial.map(m => `${m.qty}x ${m.name}`).join(', ');
+            }
+
+            const summaryHtml = `
+                <div><span class="text-slate-500 block text-xs">Importe Venta Bruto</span><span class="font-bold text-slate-800">${currencyFormatter.format(inputImporteBruto)}</span></div>
+                <div><span class="text-slate-500 block text-xs">Nº Días</span><span class="font-bold text-slate-800">${inputDias}</span></div>
+                <div><span class="text-slate-500 block text-xs">% IRPF</span><span class="font-bold text-slate-800">${inputIRPF}%</span></div>
+                <div><span class="text-slate-500 block text-xs">Kilometraje</span><span class="font-bold text-slate-800">${inputKilometraje} km</span></div>
+                <div><span class="text-slate-500 block text-xs">Dietas</span><span class="font-bold text-slate-800">${inputDietas} días<br><span class="text-xs font-normal text-slate-600">${dietText}</span></span></div>
+                <div><span class="text-slate-500 block text-xs">Gastos Justificados</span><span class="font-bold text-slate-800">${currencyFormatter.format(inputGastosJustificados)}</span></div>
+                <div class="col-span-2 md:col-span-3 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Material de Alquiler</span><span class="font-bold text-slate-800 text-sm">${materialSummary}</span></div>
+            `;
+            document.getElementById('pdfSummaryContent').innerHTML = summaryHtml;
+
             // --- LÓGICA DE DISTRIBUCIÓN (PRESUPUESTO / TOPE EN CASCADA) ---
             // Bucket = Dinero disponible después de garantizar 75€/día de caché
             let bucket = inputImporteBruto - (inputDias * 75);
@@ -539,15 +623,12 @@
                 bucket -= gastosJustificadosBruto;
             }
 
-            // Prioridad 4: Alquiler de Material (Prorrateo diario EQUITATIVO)
+            // Prioridad 4: Alquiler de Material (Llenado en cascada diario)
             if (totalAlquilerDiario > 0) {
-                let totalReqAlquiler = totalAlquilerDiario * inputDias;
-                let availableAlquiler = Math.min(totalReqAlquiler, bucket);
-                let perDayAlquiler = availableAlquiler / inputDias;
-                
                 for (let i = 0; i < inputDias; i++) {
-                    diasData[i].alquiler = perDayAlquiler;
-                    bucket -= perDayAlquiler;
+                    let alquilerDiaBruto = Math.min(totalAlquilerDiario, bucket);
+                    diasData[i].alquiler = alquilerDiaBruto;
+                    bucket -= alquilerDiaBruto;
                 }
                 bucket = Math.max(0, bucket);
             }
@@ -558,11 +639,12 @@
                 bucket = 0;
             }
 
-            // --- VISTAS: Siempre renderizamos el layout de MATRIZ ---
+            // --- VISTAS: RENDERIZADO GRID ---
             
-            const tbody = document.getElementById('multiDayBody');
-            const tfoot = document.getElementById('multiDayFoot');
-            tbody.innerHTML = ''; // Limpiar filas anteriores
+            const multiDayBody = document.getElementById('multiDayBody');
+            const multiDayFoot = document.getElementById('multiDayFoot');
+            
+            multiDayBody.innerHTML = '';
 
             let totalBruto = 0, totalComision = 0, totalCoste = 0, totalSegSocial = 0, totalIRPF = 0, totalALiquidar = 0;
 
@@ -580,29 +662,32 @@
                 totalIRPF += res.irpf;
                 totalALiquidar += res.aLiquidar;
 
+                // Contenedor del día con break-inside-avoid para el PDF
+                const dayBlock = document.createElement('div');
+                dayBlock.className = 'break-inside-avoid flex flex-col border-b border-slate-200 last:border-0';
+
                 // Fila cabecera del día
-                const trDia = document.createElement('tr');
-                trDia.className = 'bg-blue-50/40 border-y border-blue-100';
-                trDia.innerHTML = `
-                    <td colspan="7" class="py-2 px-4 font-bold text-blue-800 text-sm"><i class="fa-regular fa-calendar-days mr-2"></i>Día ${diaNum}</td>
+                let dayHtml = `
+                    <div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center">
+                        <i class="fa-regular fa-calendar-days mr-2"></i>Día ${diaNum}
+                    </div>
+                    <div class="flex flex-col divide-y divide-slate-100">
                 `;
-                tbody.appendChild(trDia);
 
-                // Crear e inyectar fila de CACHÉ en la tabla
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition-colors text-sm';
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-microphone text-slate-400 mr-2"></i>Caché</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(res.bruto)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.comision)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(res.coste)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.segSocial)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.irpf)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(res.aLiquidar)}</td>
+                // Caché
+                dayHtml += `
+                    <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                        <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-microphone text-slate-400 mr-2"></i>Caché</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(res.bruto)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.comision)}</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(res.coste)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.segSocial)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(res.irpf)}</div>
+                        <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(res.aLiquidar)}</div>
+                    </div>
                 `;
-                tbody.appendChild(tr);
 
-                // Crear e inyectar fila de KILOMETRAJE en la tabla
+                // Kilometraje
                 if (dayData.km > 0) {
                     const kmComision = dayData.km * 0.05;
                     const kmBaseLiq = dayData.km - kmComision;
@@ -612,21 +697,20 @@
                     totalCoste += kmBaseLiq;
                     totalALiquidar += kmBaseLiq;
 
-                    const trKm = document.createElement('tr');
-                    trKm.className = 'hover:bg-slate-50 transition-colors text-sm';
-                    trKm.innerHTML = `
-                        <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-car text-slate-400 mr-2"></i>Kilometraje</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.km)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(kmComision)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(kmBaseLiq)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(kmBaseLiq)}</td>
+                    dayHtml += `
+                        <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-car text-slate-400 mr-2"></i>Kilometraje</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.km)}</div>
+                            <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(kmComision)}</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(kmBaseLiq)}</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(kmBaseLiq)}</div>
+                        </div>
                     `;
-                    tbody.appendChild(trKm);
                 }
 
-                // Crear e inyectar fila de DIETAS en la tabla
+                // Dietas
                 if (dayData.dieta > 0) {
                     const dietaComision = dayData.dieta * 0.05;
                     const dietaBaseLiq = dayData.dieta - dietaComision;
@@ -636,21 +720,20 @@
                     totalCoste += dietaBaseLiq;
                     totalALiquidar += dietaBaseLiq;
 
-                    const trDieta = document.createElement('tr');
-                    trDieta.className = 'hover:bg-slate-50 transition-colors text-sm';
-                    trDieta.innerHTML = `
-                        <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-utensils text-slate-400 mr-2"></i>Dietas</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.dieta)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(dietaComision)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dietaBaseLiq)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(dietaBaseLiq)}</td>
+                    dayHtml += `
+                        <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-utensils text-slate-400 mr-2"></i>Dietas</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.dieta)}</div>
+                            <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(dietaComision)}</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(dietaBaseLiq)}</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(dietaBaseLiq)}</div>
+                        </div>
                     `;
-                    tbody.appendChild(trDieta);
                 }
 
-                // Crear e inyectar fila de ALQUILER DE MATERIAL en la tabla
+                // Alquiler de Material
                 if (dayData.alquiler > 0) {
                     const alquilerComision = dayData.alquiler * 0.05;
                     const alquilerBaseLiq = dayData.alquiler - alquilerComision;
@@ -658,24 +741,26 @@
                     totalBruto += dayData.alquiler;
                     totalComision += alquilerComision;
                     totalCoste += alquilerBaseLiq;
-                    totalALiquidar += alquilerBaseLiq;
 
-                    const trAlquiler = document.createElement('tr');
-                    trAlquiler.className = 'hover:bg-slate-50 transition-colors text-sm';
-                    trAlquiler.innerHTML = `
-                        <td class="py-3 px-4 font-medium text-slate-700 pl-8 text-xs"><i class="fa-solid fa-guitar text-slate-400 mr-2"></i>Alquiler Material</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.alquiler)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(alquilerComision)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(alquilerBaseLiq)}</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                        <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(alquilerBaseLiq)}</td>
+                    dayHtml += `
+                        <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-guitar text-slate-400 mr-2"></i>Alquiler Material</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(dayData.alquiler)}</div>
+                            <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(alquilerComision)}</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(alquilerBaseLiq)}</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right text-purple-600 font-bold italic">via Taiman</div>
+                        </div>
                     `;
-                    tbody.appendChild(trAlquiler);
                 }
+
+                dayHtml += `</div>`; // Cierra el bloque flex-col de elementos del día
+                dayBlock.innerHTML = dayHtml;
+                multiDayBody.appendChild(dayBlock);
             }
 
-            // Inyectar fila agrupada para GASTOS JUSTIFICADOS al final de todo
+            // Gastos Justificados (Global al final)
             if (gastosJustificadosBruto > 0) {
                 const gastosComision = gastosJustificadosBruto * 0.05;
                 const gastosBaseLiq = gastosJustificadosBruto - gastosComision;
@@ -685,31 +770,33 @@
                 totalCoste += gastosBaseLiq;
                 totalALiquidar += gastosBaseLiq;
 
-                const trGastos = document.createElement('tr');
-                trGastos.className = 'hover:bg-slate-50 transition-colors text-sm bg-slate-100/50 border-t-2 border-slate-200';
-                trGastos.innerHTML = `
-                    <td class="py-3 px-4 font-bold text-slate-700 text-xs"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Gastos Justificados</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(gastosJustificadosBruto)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-red-600">- ${currencyFormatter.format(gastosComision)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-slate-900">${currencyFormatter.format(gastosBaseLiq)}</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-slate-400">-</td>
-                    <td class="py-3 px-4 text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(gastosBaseLiq)}</td>
+                const gastosBlock = document.createElement('div');
+                gastosBlock.className = 'break-inside-avoid border-b border-slate-200 bg-slate-100/50';
+                gastosBlock.innerHTML = `
+                    <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                        <div class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Gastos Justificados</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(gastosJustificadosBruto)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(gastosComision)}</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(gastosBaseLiq)}</div>
+                        <div class="text-right tabular-nums text-slate-400">-</div>
+                        <div class="text-right tabular-nums text-slate-400">-</div>
+                        <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(gastosBaseLiq)}</div>
+                    </div>
                 `;
-                tbody.appendChild(trGastos);
+                multiDayBody.appendChild(gastosBlock);
             }
 
-            // Generar y actualizar fila de Totales
-            tfoot.innerHTML = `
-                <tr>
-                    <td class="py-4 px-4 font-bold text-slate-900 rounded-bl-xl uppercase text-xs tracking-wider">Total</td>
-                    <td class="py-4 px-4 text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalBruto)}</td>
-                    <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalComision)}</td>
-                    <td class="py-4 px-4 text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalCoste)}</td>
-                    <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalSegSocial)}</td>
-                    <td class="py-4 px-4 text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalIRPF)}</td>
-                    <td class="py-4 px-4 text-right tabular-nums font-bold text-blue-700 text-lg rounded-br-xl" id="resMultiTotal">${currencyFormatter.format(totalALiquidar)}</td>
-                </tr>
+            // Generar y actualizar Totales
+            multiDayFoot.innerHTML = `
+                <div class="py-4 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                    <div class="font-bold text-slate-900 uppercase text-xs tracking-wider">Total</div>
+                    <div class="text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalBruto)}</div>
+                    <div class="text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalComision)}</div>
+                    <div class="text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(totalCoste)}</div>
+                    <div class="text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalSegSocial)}</div>
+                    <div class="text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(totalIRPF)}</div>
+                    <div class="text-right tabular-nums font-bold text-blue-700 text-lg" id="resMultiTotal">${currencyFormatter.format(totalALiquidar)}</div>
+                </div>
             `;
 
             // Pequeño feedback visual para la vista multi-día
@@ -721,6 +808,68 @@
             // Sumamos el total real de alquiler que ha entrado en la liquidación de Zenit (topado por el bucket)
             let totalAllocatedMaterial = diasData.reduce((acc, curr) => acc + curr.alquiler, 0);
             calcularTaiman(totalAllocatedMaterial);
+        }
+
+        // --- EXPORTACIÓN A PDF ---
+        function generarPDF() {
+            const element = document.getElementById('resultsSection');
+            const btn = document.getElementById('btnDownloadPDF');
+            const summary = document.getElementById('pdfSummary');
+
+            // --- AJUSTES ANTI-RECORTE ---
+            // Quitamos el scroll horizontal para que la librería no corte los laterales
+            const tablasScroll = element.querySelectorAll('.overflow-x-auto');
+            tablasScroll.forEach(t => t.classList.remove('overflow-x-auto'));
+            
+            // TRUCO PARA LÍNEAS FANTASMAS: 
+            // Quitamos el borde externo y el redondeo temporalmente.
+            // Así html2canvas no dibujará las líneas verticales en los saltos de página.
+            const contenedoresTabla = element.querySelectorAll('.rounded-xl.border');
+            contenedoresTabla.forEach(t => {
+                t.classList.remove('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+            });
+
+            // Añadimos padding al contenedor principal para que los bordes y sombras no choquen con el margen del documento
+            element.classList.add('px-4', 'pb-4');
+
+            // Preparamos la vista: ocultar botón de descarga, mostrar resumen de inputs
+            btn.classList.add('hidden');
+            summary.classList.remove('hidden');
+
+            // Opciones de configuración del PDF
+            const opt = {
+                margin:       [10, 15, 10, 15], // Márgenes: top, left, bottom, right
+                filename:     'Liquidacion_Zenit_Taiman.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }, 
+                pagebreak:    { mode: 'css', avoid: '.break-inside-avoid' } 
+            };
+
+            // Generar PDF forzando un pequeño retraso
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    // Restaurar la vista original web
+                    btn.classList.remove('hidden');
+                    summary.classList.add('hidden');
+                    element.classList.remove('px-4', 'pb-4');
+                    tablasScroll.forEach(t => t.classList.add('overflow-x-auto'));
+                    // Restauramos los bordes
+                    contenedoresTabla.forEach(t => {
+                        t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+                    });
+                }).catch(err => {
+                    console.error("Error generando PDF:", err);
+                    btn.classList.remove('hidden');
+                    summary.classList.add('hidden');
+                    element.classList.remove('px-4', 'pb-4');
+                    tablasScroll.forEach(t => t.classList.add('overflow-x-auto'));
+                    // Restauramos los bordes
+                    contenedoresTabla.forEach(t => {
+                        t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+                    });
+                });
+            }, 500); 
         }
     </script>
 </body>
