@@ -1,0 +1,21 @@
+{
+  "importe_principal": 1500.00,
+  "dias_trabajo": 1,
+  "porcentaje_irpf": 2.0,
+  "kilometraje_total": 0.0,
+  "dias_dieta": 0,
+  "tarifa_dieta": 28.0736,
+  "gastos_justificados": 0.0,
+  "alquiler_material": [
+    {
+      "nombre": "Guitarra eléctrica",
+      "precio": 105.2632,
+      "cantidad": 1
+    },
+    {
+      "nombre": "Micrófono",
+      "precio": 52.6316,
+      "cantidad": 1
+    }
+  ]
+}

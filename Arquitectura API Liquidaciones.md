@@ -54,3 +54,9 @@ Nota para el Chatbot: Al Chatbot se le puede pasar esta misma especificación co
   }
 }
 5. Diseño Arquitectónico para Chatbots (Flujo de IA)Extracción de Entidades (LLM): El usuario dice al chatbot: "Quiero que me queden 1000€ limpios por 2 días, usando un micro de 50€ y con 1 dieta nacional".Function Calling: El Chatbot mapea esto y hace una llamada HTTP POST al endpoint /neto-a-bruto.Cálculo (FastAPI): Python recibe los datos, corre el Goal Seek de 1000€, procesa los buckets de material y dietas, y devuelve el JSON en milisegundos.Generación de Lenguaje (LLM): El Chatbot recibe el JSON y formula la respuesta: "Para que te queden 1000€ netos exactamente, deberíamos facturar a Zenit un bruto de 1.345€. Esto incluye tus 93€ netos del alquiler del micro por vía Taiman. ¿Quieres que te desglose los descuentos de Seguridad Social o te genero un PDF?"6. Siguientes Pasos TécnicosScript de Python: Traducir los métodos calcularDia() y simularEscenario() a un services.py en Python.Endpoints: Crear el main.py de FastAPI definiendo los modelos con Pydantic.Seguridad: Implementar un middleware básico de verificación (ej. pasar un X-API-Key en los headers) para que solo tus chatbots (o tu front) puedan consumir la API.Despliegue: Contenerizar en Docker y subir a servicios gestionados súper económicos como Google Cloud Run, Railway o Render.
+
+Para probar la API puedes hacer este comando desde la carpeta donde está el main.
+uvicorn main:app --reload
+
+Para probar la API con swagger localmente, aqui tienes el acceso:
+http://localhost:8000/docs

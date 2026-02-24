@@ -1,0 +1,19 @@
+{
+  "importe_principal": 1500.00,
+  "dias_trabajo": 1,
+  "porcentaje_irpf": 2.0,
+  "kilometraje_total": 0.0,
+  "dias_dieta": 1,
+  "tipo_dieta": "nacional",
+  "gastos_justificados": 0.0,
+  "alquiler_material": [
+    {
+      "id_material": "guitarra_electrica",
+      "cantidad": 1
+    },
+    {
+      "id_material": "microfono",
+      "cantidad": 1
+    }
+  ]
+}
