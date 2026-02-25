@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora DI y Propiedad Intelectual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles to hide number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        /* Custom radio button styling */
+        .radio-peer:checked + div {
+            border-color: #2563eb; /* blue-600 */
+            background-color: #eff6ff; /* blue-50 */
+        }
+        .radio-peer:checked + div .radio-icon {
+            color: #2563eb;
+        }
+        .radio-peer:checked + div .radio-text {
+            color: #1e40af; /* blue-800 */
+            font-weight: 700;
+        }
+        .radio-peer:checked + div .radio-check {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden my-8">
+        
+        <div class="bg-blue-600 px-8 py-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-copyright"></i>
+                Liquidación Derechos de Imagen y Propiedad Intelectual
+            </h1>
+            <p class="text-blue-100 text-sm mt-1">Calculadora rápida para Derechos de Imagen y Propiedad Intelectual</p>
+        </div>
+
+        <div class="p-8">
+            <form onsubmit="event.preventDefault(); calcular();">
+                
+                <!-- Selector de Tipo (Radio Buttons) -->
+                <div class="mb-8">
+                    <label class="block text-sm font-bold text-slate-700 mb-3">
+                        Tipo de Liquidación
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="tipoLiquidacion" value="imagen" class="radio-peer sr-only" onchange="actualizarIRPF()" checked>
+                            <div class="rounded-xl border-2 border-slate-200 p-4 transition-all hover:border-blue-300 flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center radio-icon text-slate-500 transition-colors">
+                                    <i class="fa-solid fa-camera-retro text-lg"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <p class="radio-text text-sm font-medium text-slate-700 transition-colors">Derechos de Imagen</p>
+                                    <p class="text-xs text-slate-500">19% IRPF por defecto</p>
+                                </div>
+                                <div class="radio-check w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 transform scale-50 transition-all">
+                                    <i class="fa-solid fa-check text-xs"></i>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="tipoLiquidacion" value="intelectual" class="radio-peer sr-only" onchange="actualizarIRPF()">
+                            <div class="rounded-xl border-2 border-slate-200 p-4 transition-all hover:border-blue-300 flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center radio-icon text-slate-500 transition-colors">
+                                    <i class="fa-solid fa-lightbulb text-lg"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <p class="radio-text text-sm font-medium text-slate-700 transition-colors">Propiedad Intelectual</p>
+                                    <p class="text-xs text-slate-500">15% IRPF por defecto</p>
+                                </div>
+                                <div class="radio-check w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 transform scale-50 transition-all">
+                                    <i class="fa-solid fa-check text-xs"></i>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                    <div>
+                        <label for="inputBruto" class="block text-sm font-bold text-slate-700 mb-2">
+                            Importe venta bruto
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">€</span>
+                            </div>
+                            <input type="number" id="inputBruto" placeholder="0,00" step="0.01" min="0.01" required
+                                class="pl-8 w-full rounded-lg border-2 border-blue-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-blue-50/30 font-medium">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="inputIRPF" class="block text-sm font-bold text-slate-700 mb-2">
+                            % retención IRPF
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="inputIRPF" placeholder="19.0" step="0.1" min="0" value="19" required disabled
+                                class="pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 transition-colors font-bold bg-slate-100 text-slate-500 cursor-not-allowed">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm font-bold">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mb-6">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-10 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 active:scale-95 text-lg">
+                        <i class="fa-solid fa-play text-sm"></i>
+                        <span>Calcular Liquidación</span>
+                    </button>
+                </div>
+            </form>
+
+            <div id="resultsDivider" class="border-t border-slate-200 mb-8 hidden"></div>
+
+            <div id="resultsSection" class="hidden relative">
+                
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                        Desglose de la Liquidación
+                    </h2>
+                    
+                    <div class="flex gap-3">
+                        <button id="btnCopyEmail" onclick="copiarPortapapeles()" type="button" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                            <i class="fa-regular fa-copy text-blue-500"></i> Copiar Portapapeles
+                        </button>
+                        <button id="btnDownloadPDF" onclick="generarPDF()" type="button" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-file-pdf text-red-400"></i> Descargar PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div id="pdfSummary" class="mb-6 p-5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <h3 class="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Datos iniciales proporcionados para el cálculo</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm" id="pdfSummaryContent">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+                    <div class="min-w-[700px] flex flex-col">
+                        <!-- Header -->
+                        <div class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.2fr_1.2fr] items-center">
+                            <div class="py-3 px-4 font-semibold">Concepto</div>
+                            <div class="py-3 px-4 font-semibold text-right">Importe</div>
+                            <div class="py-3 px-4 font-semibold text-right">Comisión (5%)</div>
+                            <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
+                            <div class="py-3 px-4 font-semibold text-right">Retención IRPF</div>
+                            <div class="py-3 px-4 font-semibold text-right">A liquidar</div>
+                        </div>
+                        
+                        <!-- Data Row -->
+                        <div class="bg-blue-50/20">
+                            <div class="py-5 px-4 text-sm grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.2fr_1.2fr] items-center">
+                                <div class="font-bold text-slate-700 text-sm flex items-center gap-2" id="resConcepto">
+                                    <i class="fa-solid fa-camera-retro text-slate-400"></i> Derechos de Imagen
+                                </div>
+                                <div class="text-right tabular-nums font-medium text-slate-900" id="resBruto">0,00 €</div>
+                                <div class="text-right tabular-nums font-medium text-red-600" id="resComision">- 0,00 €</div>
+                                <div class="text-right tabular-nums font-medium text-slate-900" id="resBaseLiq">0,00 €</div>
+                                <div class="text-right tabular-nums font-medium text-red-600" id="resIRPF">- 0,00 €</div>
+                                <div class="text-right tabular-nums font-bold text-blue-700 text-lg transition-transform" id="resNeto">0,00 €</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Formateador de moneda para euros
+        const currencyFormatter = new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 2
+        });
+
+        // Variable global para almacenar el último cálculo y usarlo en la exportación
+        let ultimoCalculo = null;
+
+        // Cambiar % IRPF automáticamente según el radio button seleccionado
+        function actualizarIRPF() {
+            const tipo = document.querySelector('input[name="tipoLiquidacion"]:checked').value;
+            const inputIRPF = document.getElementById('inputIRPF');
+            
+            if (tipo === 'imagen') {
+                inputIRPF.value = '19';
+            } else if (tipo === 'intelectual') {
+                inputIRPF.value = '15';
+            }
+
+            // Ocultar resultados al cambiar de tipo para forzar recálculo
+            document.getElementById('resultsDivider').classList.add('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+
+        // Función principal de cálculo
+        function calcular() {
+            const bruto = parseFloat(document.getElementById('inputBruto').value) || 0;
+            const irpfPorcentaje = parseFloat(document.getElementById('inputIRPF').value) || 0;
+            const tipoValor = document.querySelector('input[name="tipoLiquidacion"]:checked').value;
+            
+            const nombreTipo = tipoValor === 'imagen' ? 'Derechos de Imagen' : 'Propiedad Intelectual';
+            const iconoTipo = tipoValor === 'imagen' ? 'fa-camera-retro' : 'fa-lightbulb';
+
+            // Matemáticas
+            const comision = bruto * 0.05;
+            const baseLiquidable = bruto - comision;
+            const irpfImporte = baseLiquidable * (irpfPorcentaje / 100);
+            const neto = baseLiquidable - irpfImporte;
+
+            // Guardar para exportar
+            ultimoCalculo = {
+                tipo: nombreTipo,
+                bruto: bruto,
+                comision: comision,
+                baseLiquidable: baseLiquidable,
+                irpfPorcentaje: irpfPorcentaje,
+                irpfImporte: irpfImporte,
+                neto: neto
+            };
+
+            // Rellenar UI
+            document.getElementById('resultsDivider').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // Resumen inicial
+            document.getElementById('pdfSummaryContent').innerHTML = `
+                <div><span class="text-slate-500 block text-xs">Tipo de Liquidación</span><span class="font-bold text-slate-800">${nombreTipo}</span></div>
+                <div><span class="text-slate-500 block text-xs">Importe de Venta Bruto</span><span class="font-bold text-slate-800">${currencyFormatter.format(bruto)}</span></div>
+                <div><span class="text-slate-500 block text-xs">% Retención IRPF</span><span class="font-bold text-slate-800">${irpfPorcentaje}%</span></div>
+            `;
+
+            // Fila de resultados
+            document.getElementById('resConcepto').innerHTML = `<i class="fa-solid ${iconoTipo} text-slate-400"></i> ${nombreTipo}`;
+            document.getElementById('resBruto').textContent = currencyFormatter.format(bruto);
+            document.getElementById('resComision').textContent = `- ${currencyFormatter.format(comision)}`;
+            document.getElementById('resBaseLiq').textContent = currencyFormatter.format(baseLiquidable);
+            document.getElementById('resIRPF').textContent = `- ${currencyFormatter.format(irpfImporte)}`;
+            
+            const netoEl = document.getElementById('resNeto');
+            netoEl.textContent = currencyFormatter.format(neto);
+            
+            // Animación de actualización del total
+            netoEl.classList.add('scale-110');
+            setTimeout(() => netoEl.classList.remove('scale-110'), 200);
+        }
+
+        // Función para copiar al portapapeles formato Email
+        function copiarPortapapeles() {
+            if (!ultimoCalculo) return;
+
+            let html = `
+            <div style="font-family: Arial, Helvetica, sans-serif; color: #334155; max-width: 800px;">
+                <h3 style="color: #1e293b; font-size: 16px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Liquidación de ${ultimoCalculo.tipo}</h3>
+                
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+                    <strong>Bruto Inicial:</strong> ${currencyFormatter.format(ultimoCalculo.bruto)} | 
+                    <strong>IRPF Aplicado:</strong> ${ultimoCalculo.irpfPorcentaje}%
+                </p>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;">
+                            <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: left;">Concepto</th>
+                            <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Importe</th>
+                            <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Comisión (5%)</th>
+                            <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Base liquidable</th>
+                            <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">IRPF</th>
+                            <th style="padding: 10px 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">A liquidar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background-color: #eff6ff;">
+                            <td style="padding: 12px 8px; font-weight: bold; color: #1e293b; border-bottom: 1px solid #e2e8f0; white-space: nowrap; text-align: left;">${ultimoCalculo.tipo}</td>
+                            <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; white-space: nowrap;">${currencyFormatter.format(ultimoCalculo.bruto)}</td>
+                            <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(ultimoCalculo.comision)}</td>
+                            <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: bold; white-space: nowrap;">${currencyFormatter.format(ultimoCalculo.baseLiquidable)}</td>
+                            <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(ultimoCalculo.irpfImporte)}</td>
+                            <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #1d4ed8; font-size: 14px; white-space: nowrap;">${currencyFormatter.format(ultimoCalculo.neto)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>`;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.innerHTML = html;
+            document.body.appendChild(tempDiv);
+
+            const range = document.createRange();
+            range.selectNodeContents(tempDiv);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            try {
+                document.execCommand('copy');
+                
+                const btn = document.getElementById('btnCopyEmail');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-green-500"></i> ¡Copiado con éxito!';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                }, 2500);
+
+            } catch (err) {
+                console.error('Error al copiar al portapapeles:', err);
+                alert('Hubo un problema al copiar. Por favor, inténtelo de nuevo.');
+            }
+
+            document.body.removeChild(tempDiv);
+            selection.removeAllRanges();
+        }
+
+        // --- EXPORTACIÓN A PDF ---
+        function generarPDF() {
+            const element = document.getElementById('resultsSection');
+            const btnPDF = document.getElementById('btnDownloadPDF');
+            const btnEmail = document.getElementById('btnCopyEmail');
+
+            // Ajustes para evitar recortes en html2pdf
+            const tablasScroll = element.querySelectorAll('.overflow-x-auto');
+            tablasScroll.forEach(t => t.classList.remove('overflow-x-auto'));
+            
+            const contenedoresTabla = element.querySelectorAll('.rounded-xl.border');
+            contenedoresTabla.forEach(t => {
+                t.classList.remove('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+            });
+
+            element.classList.add('px-4', 'pb-4');
+            btnPDF.classList.add('hidden');
+            if (btnEmail) btnEmail.classList.add('hidden');
+
+            const opt = {
+                margin:       [10, 15, 10, 15], 
+                filename:     'Liquidacion_Derechos.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }, 
+                pagebreak:    { mode: 'css', avoid: '.break-inside-avoid' } 
+            };
+
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    // Restaurar interfaz
+                    btnPDF.classList.remove('hidden');
+                    if (btnEmail) btnEmail.classList.remove('hidden');
+                    element.classList.remove('px-4', 'pb-4');
+                    tablasScroll.forEach(t => t.classList.add('overflow-x-auto'));
+                    contenedoresTabla.forEach(t => {
+                        t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+                    });
+                }).catch(err => {
+                    console.error("Error generando PDF:", err);
+                    btnPDF.classList.remove('hidden');
+                    if (btnEmail) btnEmail.classList.remove('hidden');
+                    element.classList.remove('px-4', 'pb-4');
+                    tablasScroll.forEach(t => t.classList.add('overflow-x-auto'));
+                    contenedoresTabla.forEach(t => {
+                        t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+                    });
+                });
+            }, 500); 
+        }
+    </script>
+</body>
+</html>
