@@ -48,7 +48,7 @@ def calcular_dia(bruto: float, porcentaje_irpf: float) -> dict:
     elif bruto <= 729.421578947369:
         seg_social = 138.86
     elif bruto <= 1250.26368421053:
-        seg_social = 176.49
+        seg_social = 179.49
     elif bruto <= 2023.02157894737:
         seg_social = 221.41
     elif bruto <= 2287.30578947368:
