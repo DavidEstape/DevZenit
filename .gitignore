@@ -1,0 +1,4 @@
+#No subir archivos de Python compilados ni la carpeta de desarrollo
+__pycache__/
+*.pyc
+dev/
