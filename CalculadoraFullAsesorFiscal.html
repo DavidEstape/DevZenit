@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Liquidación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles to hide number input arrows for a cleaner look */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden my-8">
+        
+        <div class="bg-blue-600 px-8 py-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-calculator"></i>
+                Calculadora de Simulación Liquidación
+            </h1>
+            <p class="text-blue-100 text-sm mt-1">Introduce los datos iniciales para calcular los importes</p>
+        </div>
+
+        <div class="p-8">
+            <form onsubmit="event.preventDefault(); calcular();" oninput="ocultarResultados()" onchange="ocultarResultados()">
+                
+                <div class="flex justify-center mb-8">
+                    <div class="bg-slate-100 p-1 rounded-lg inline-flex relative">
+                        <button type="button" id="btnModeBruto" onclick="setMode('bruto')" class="px-5 py-2.5 rounded-md bg-white shadow-sm text-sm font-bold text-slate-800 transition-all z-10">
+                            <i class="fa-solid fa-arrow-down-wide-short mr-2 text-slate-400"></i>De Bruto a Neto
+                        </button>
+                        <button type="button" id="btnModeNeto" onclick="setMode('neto')" class="px-5 py-2.5 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 transition-all z-10">
+                            <i class="fa-solid fa-bullseye mr-2"></i>Objetivo Neto
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    
+                    <div>
+                        <label id="lblImportePrincipal" for="inputImportePrincipal" class="block text-sm font-bold text-blue-600 mb-2 transition-colors">
+                            Importe venta bruto
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">€</span>
+                            </div>
+                            <input type="number" id="inputImportePrincipal" placeholder="75,00" step="0.01" min="0" required
+                                class="pl-8 w-full rounded-lg border-2 border-blue-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-blue-50/30">
+                        </div>
+                        <p id="errorImporteBruto" class="text-red-500 text-xs mt-1 hidden">El importe mínimo es 75€.</p>
+                        <p id="warningImporteNeto" class="text-amber-500 text-xs mt-1 hidden">El neto es inferior al mínimo legal. Se ha ajustado.</p>
+                    </div>
+
+                    <div>
+                        <label for="inputDias" class="block text-sm font-medium text-slate-700 mb-2">
+                            Nº días
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-regular fa-calendar text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputDias" value="1" min="1" step="1" required oninput="if(typeof renderDietas === 'function') renderDietas();"
+                                class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="inputIRPF" class="block text-sm font-medium text-slate-700 mb-2">
+                            % retención IRPF
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="inputIRPF" placeholder="2,00" step="0.1" min="2" value="2" required
+                                class="pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                        <p id="errorIRPF" class="text-red-500 text-xs mt-1 hidden">El IRPF mínimo es 2%.</p>
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 mb-6">
+                    <div class="md:col-span-3">
+                        <label for="inputKilometraje" class="block text-sm font-medium text-slate-700 mb-2 truncate">
+                            Kilometraje (Diario)
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-car text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputKilometraje" placeholder="0.00" min="0" step="0.01" oninput="toggleCPFields()"
+                                class="pl-9 pr-12 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">km</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="inputCpOrigen" class="block text-sm font-medium text-slate-700 mb-2 truncate">
+                            CP Origen
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-map-pin text-slate-400"></i>
+                            </div>
+                            <input type="text" id="inputCpOrigen" placeholder="08001" disabled maxlength="5"
+                                class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-slate-100 text-slate-500 cursor-not-allowed disabled:opacity-75">
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="inputCpDestino" class="block text-sm font-medium text-slate-700 mb-2 truncate">
+                            CP Destino
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-location-dot text-slate-400"></i>
+                            </div>
+                            <input type="text" id="inputCpDestino" placeholder="28001" disabled maxlength="5"
+                                class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-slate-100 text-slate-500 cursor-not-allowed disabled:opacity-75">
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-5">
+                        <label for="inputGastosJustificados" class="block text-sm font-medium text-slate-700 mb-2 truncate">
+                            Gastos justificados
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-receipt text-slate-400"></i>
+                            </div>
+                            <input type="number" id="inputGastosJustificados" placeholder="0,00" min="0" step="0.01"
+                                class="pl-9 pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-slate-500 sm:text-sm">€</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-300">
+                    <div class="p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4 border-b border-slate-100">
+                        <div class="flex items-center gap-2 w-full lg:w-56 flex-shrink-0">
+                            <i class="fa-solid fa-utensils text-slate-400"></i>
+                            <h3 class="text-sm font-bold text-slate-700">Añadir dietas</h3>
+                        </div>
+
+                        <div class="flex-grow flex flex-col sm:flex-row items-center gap-3 w-full">
+                            <div class="relative flex-1 w-full">
+                                <select id="selectDieta" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate">
+                                    <option value="">Seleccionar tipo de dieta...</option>
+                                    <option value="28.0736">Territorio español (28,07€)</option>
+                                    <option value="50.6105">Fuera de territorio español (50,61€)</option>
+                                    <option value="56.1473">Pernocta territorio español (56,15€)</option>
+                                    <option value="96.1578">Pernocta fuera territorio español (96,16€)</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-auto flex-shrink-0">
+                                <input type="number" id="inputDietaQty" value="1" min="1" step="1" title="Nº Días"
+                                    class="w-16 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                                <button type="button" onclick="agregarDieta()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm flex-shrink-0">
+                                    <i class="fa-solid fa-plus text-xs"></i> Añadir
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="toggleDietas()" class="flex items-center gap-3 text-slate-500 hover:text-slate-700 transition-colors focus:outline-none w-full lg:w-36 flex-shrink-0 justify-end mt-2 lg:mt-0">
+                            <span id="dietasHeaderTotal" class="text-xs font-bold text-blue-600 hidden">0 días</span>
+                            <i id="dietasChevron" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                    </div>
+
+                    <div id="dietasContent" class="hidden px-5 pb-5 pt-3 bg-slate-50 rounded-b-xl">
+                        <p id="errorDietasMax" class="text-red-500 text-xs pb-3 hidden font-medium">
+                            <i class="fa-solid fa-circle-exclamation mr-1"></i> No puedes añadir más dietas que el número total de días de liquidación.
+                        </p>
+                        <ul id="listaDietasUI" class="space-y-1 mb-2">
+                            <li class="text-sm text-slate-400 italic py-2 text-center">Ninguna dieta añadida</li>
+                        </ul>
+                        <div id="dietasInfoNota" class="hidden mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500 italic flex items-start gap-2">
+                            <i class="fa-solid fa-circle-info mt-0.5 text-blue-400"></i>
+                            <p>Las dietas se aplicarán a los días por orden secuencial. Modifica el orden usando las flechas si lo deseas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-10 bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-300">
+                    <div class="p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4 border-b border-slate-100">
+                        <div class="flex items-center gap-2 w-full lg:w-56 flex-shrink-0">
+                            <i class="fa-solid fa-guitar text-slate-400"></i>
+                            <h3 class="text-sm font-bold text-slate-700 leading-tight">Añadir material de alquiler<br><span class="text-xs font-normal text-slate-500">(via Taiman)</span></h3>
+                        </div>
+
+                        <div class="flex-grow flex flex-col sm:flex-row items-center gap-3 w-full">
+                            <div class="relative flex-1 w-full">
+                                <select id="selectMaterial" onchange="toggleCustomMaterialFields()" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate">
+                                    <option value="">Seleccionar material...</option>
+                                    <option value="105.2632">Altavoces (105,26€)</option>
+                                    <option value="73.6842">Bajos y complementos (73,68€)</option>
+                                    <option value="105.2632">Batería acústica (105,26€)</option>
+                                    <option value="105.2632">Batería eléctrica (105,26€)</option>
+                                    <option value="5.2632">Cables (5,26€)</option>
+                                    <option value="84.2105">Clarinete (84,21€)</option>
+                                    <option value="105.2632">Contrabajo (105,26€)</option>
+                                    <option value="73.6842">Guitarra acústica (73,68€)</option>
+                                    <option value="63.1579">Guitarra clásica (63,16€)</option>
+                                    <option value="105.2632">Guitarra eléctrica (105,26€)</option>                                 
+                                    <option value="52.6316">Micrófono (52,63€)</option>
+                                    <option value="63.1579">Ordenador (63,16€)</option>
+                                    <option value="custom">Otros (Especificar...)</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-auto flex-shrink-0">
+                                <input type="number" id="inputMaterialQty" value="1" min="1" step="1" title="Num. Instrumentos/día"
+                                    class="w-16 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                                <button type="button" onclick="agregarMaterial()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm flex-shrink-0">
+                                    <i class="fa-solid fa-plus text-xs"></i> Añadir
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="toggleMaterial()" class="flex items-center gap-3 text-slate-500 hover:text-slate-700 transition-colors focus:outline-none w-full lg:w-36 flex-shrink-0 justify-end mt-2 lg:mt-0">
+                            <span id="materialHeaderTotal" class="text-xs font-bold text-blue-600 hidden">0,00 €</span>
+                            <i id="materialChevron" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                    </div>
+
+                    <!-- Campos para material "Otros" (Ocultos por defecto) -->
+                    <div id="customMaterialFields" class="hidden flex-col md:flex-row gap-3 px-4 md:px-5 py-4 w-full items-center bg-blue-50/40 border-b border-blue-100">
+                        <div class="flex-grow w-full">
+                            <input type="text" id="inputCustomName" placeholder="Descripción: Ej: Fender Stratocaster"
+                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
+                                class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="w-full md:w-32 relative">
+                            <input type="number" id="inputCustomPrice" placeholder="Precio/día (€)" min="0" step="0.01"
+                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
+                                class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
+                        </div>
+                        <button type="button" onclick="agregarMaterial()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md transition-colors flex justify-center items-center gap-2 text-sm whitespace-nowrap shadow-sm h-[38px] w-full md:w-auto">
+                            <i class="fa-solid fa-check"></i> Confirmar
+                        </button>
+                    </div>
+
+                    <div id="materialContent" class="hidden px-5 pb-5 pt-3 bg-slate-50 rounded-b-xl">
+                        <p id="errorCustomMaterial" class="text-red-500 text-xs pb-3 hidden font-medium">
+                            <i class="fa-solid fa-circle-exclamation mr-1"></i> Por favor, introduce una descripción y un precio mayor a 0.
+                        </p>
+                        <ul id="listaMaterialUI" class="space-y-1 mb-2">
+                            <li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>
+                        </ul>
+                        <div class="flex justify-between items-center border-t border-slate-200 pt-3 mt-2">
+                            <span class="text-sm font-medium text-slate-600">Total alquiler diario:</span>
+                            <span class="text-lg font-bold text-slate-900" id="totalMaterialUI">0,00 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mb-10">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-10 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 active:scale-95 text-lg">
+                        <i class="fa-solid fa-play text-sm"></i>
+                        <span id="btnCalculateText">Calcular Liquidación</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="border-t border-slate-200 mb-8"></div>
+
+            <div id="resultsSection" class="hidden relative">
+                
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                        Desglose de la Liquidación Zenit
+                    </h2>
+                    
+                    <div class="flex gap-3">
+                        <button id="btnCopyEmail" onclick="copiarPortapapeles()" type="button" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                            <i class="fa-regular fa-copy text-blue-500"></i> Copiar Portapapeles
+                        </button>
+                        <button id="btnDownloadPDF" onclick="generarPDF()" type="button" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-file-pdf text-red-400"></i> Descargar PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div id="goalSeekBanner" class="hidden mb-6 bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+                    <i class="fa-solid fa-bullseye text-emerald-500 text-xl flex-shrink-0"></i>
+                    <div>
+                        <p class="text-sm text-emerald-800 m-0">
+                            Para conseguir un neto de <strong id="gsNetoTarget">0,00 €</strong>, 
+                            el importe bruto de facturación deberia ser de <strong id="gsBrutoResult" class="text-lg">0,00 €</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- BANNER DE AVISO DE OPTIMIZACIÓN (NUEVO) -->
+                <div id="optimizationBanner" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-xl flex-shrink-0"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-amber-800 mb-0.5">¡Aviso de optimización de tramo!</h4>
+                        <p class="text-sm text-amber-800 m-0" id="optMessage">
+                            <!-- content injected by JS -->
+                        </p>
+                    </div>
+                </div>
+
+                <div id="pdfSummary" class="hidden mb-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 border-b border-slate-200 pb-2">Datos iniciales proporcionados para el cálculo</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm" id="pdfSummaryContent">
+                        </div>
+                </div>
+
+                <div id="multiDayView" class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+                    <div class="min-w-[800px] flex flex-col">
+                        <div class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="py-3 px-4 font-semibold">Día / Concepto</div>
+                            <div class="py-3 px-4 font-semibold text-right">Importe</div>
+                            <div class="py-3 px-4 font-semibold text-right">Comisión</div>
+                            <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
+                            <div class="py-3 px-4 font-semibold text-right">Seg. Soc.</div>
+                            <div class="py-3 px-4 font-semibold text-right">IRPF</div>
+                            <div class="py-3 px-4 font-semibold text-right">A liquidar</div>
+                        </div>
+                        
+                        <div id="multiDayBody" class="flex flex-col">
+                            </div>
+                        
+                        <div id="multiDayFoot" class="bg-blue-50/50 border-t-2 border-slate-200 break-inside-avoid">
+                            </div>
+                    </div>
+                </div>
+
+                <div id="taimanDivider" class="border-t border-slate-200 my-8 hidden"></div>
+
+                <div id="taimanSection" class="hidden break-inside-avoid">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-guitar text-slate-400"></i>
+                        Desglose de la Liquidación Taiman
+                    </h2>
+                    
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+                        <div class="min-w-[800px] flex flex-col">
+                            <div class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.2fr_1.2fr] items-center">
+                                <div class="py-3 px-4 font-semibold">Concepto</div>
+                                <div class="py-3 px-4 font-semibold text-right">Importe</div>
+                                <div class="py-3 px-4 font-semibold text-right">Comisión</div>
+                                <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
+                                <div class="py-3 px-4 font-semibold text-right">7% IRPF</div>
+                                <div class="py-3 px-4 font-semibold text-right">A liquidar</div>
+                            </div>
+                            
+                            <div class="bg-purple-50/50">
+                                <div class="py-4 px-4 hover:bg-purple-100/50 transition-colors text-sm grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.2fr_1.2fr] items-center">
+                                    <div class="font-bold text-purple-600 uppercase text-xs tracking-wider flex items-center"><i class="fa-solid fa-file-invoice text-purple-500 mr-2"></i>Liquidación Taiman</div>
+                                    <div class="text-right tabular-nums font-bold text-slate-900" id="resTaimanImporte">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-red-600" id="resTaimanComision">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-slate-900" id="resTaimanBaseLiq">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-red-600" id="resTaimanIRPF">0,00 €</div>
+                                    <div class="text-right tabular-nums font-bold text-purple-700 text-lg" id="resTaimanALiquidar">0,00 €</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Formateador de moneda para euros (formato español)
+        const currencyFormatter = new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 2
+        });
+
+        // --- VARIABLES GLOBALES PARA EXPORTACIÓN ---
+        let globalSimulationResult = null;
+
+        // --- OCULTAR RESULTADOS AL MODIFICAR ---
+        function ocultarResultados() {
+            const resultsSection = document.getElementById('resultsSection');
+            if (resultsSection) {
+                resultsSection.classList.add('hidden');
+            }
+        }
+
+        // --- GESTIÓN MODO DE CÁLCULO (BRUTO/NETO) ---
+        let calcMode = 'bruto';
+
+        function setMode(mode) {
+            ocultarResultados();
+            calcMode = mode;
+            const btnBruto = document.getElementById('btnModeBruto');
+            const btnNeto = document.getElementById('btnModeNeto');
+            const lblImporte = document.getElementById('lblImportePrincipal');
+            const btnCalc = document.getElementById('btnCalculateText');
+            const warningNeto = document.getElementById('warningImporteNeto');
+            const errorBruto = document.getElementById('errorImporteBruto');
+
+            errorBruto.classList.add('hidden');
+            warningNeto.classList.add('hidden');
+
+            if (mode === 'bruto') {
+                btnBruto.className = "px-5 py-2.5 rounded-md bg-white shadow-sm text-sm font-bold text-slate-800 transition-all z-10";
+                btnBruto.innerHTML = '<i class="fa-solid fa-arrow-down-wide-short mr-2 text-blue-600"></i>De Bruto a Neto';
+                btnNeto.className = "px-5 py-2.5 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 transition-all z-10";
+                btnNeto.innerHTML = '<i class="fa-solid fa-bullseye mr-2"></i>Objetivo Neto';
+                
+                lblImporte.textContent = "Importe venta bruto";
+                lblImporte.className = "block text-sm font-bold text-blue-600 mb-2 transition-colors";
+                btnCalc.textContent = "Calcular Liquidación";
+            } else {
+                btnNeto.className = "px-5 py-2.5 rounded-md bg-white shadow-sm text-sm font-bold text-slate-800 transition-all z-10";
+                btnNeto.innerHTML = '<i class="fa-solid fa-bullseye mr-2 text-emerald-600"></i>Objetivo Neto';
+                btnBruto.className = "px-5 py-2.5 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 transition-all z-10";
+                btnBruto.innerHTML = '<i class="fa-solid fa-arrow-down-wide-short mr-2"></i>De Bruto a Neto';
+                
+                lblImporte.textContent = "Total Neto a Percibir";
+                lblImporte.className = "block text-sm font-bold text-emerald-600 mb-2 transition-colors";
+                btnCalc.textContent = "Calcular importe bruto";
+            }
+        }
+
+        // --- GESTIÓN DINÁMICA DE DIETAS Y ALQUILER DE MATERIAL ---
+        let listaMaterial = [];
+        let listaDietas = [];
+
+        function toggleCPFields() {
+            const kmInput = document.getElementById('inputKilometraje');
+            const cpOrigen = document.getElementById('inputCpOrigen');
+            const cpDestino = document.getElementById('inputCpDestino');
+            const isEnabled = parseFloat(kmInput.value) > 0;
+            
+            [cpOrigen, cpDestino].forEach(el => {
+                el.disabled = !isEnabled;
+                if (isEnabled) {
+                    el.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed', 'disabled:opacity-75');
+                    el.classList.add('bg-white', 'text-slate-800');
+                } else {
+                    el.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed', 'disabled:opacity-75');
+                    el.classList.remove('bg-white', 'text-slate-800');
+                    el.value = ''; // Limpiamos los campos si se desactiva el kilometraje
+                }
+            });
+        }
+
+        function toggleDietas() {
+            const content = document.getElementById('dietasContent');
+            const chevron = document.getElementById('dietasChevron');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
+        function agregarDieta() {
+            const select = document.getElementById('selectDieta');
+            const qtyInput = document.getElementById('inputDietaQty');
+            const maxDias = parseInt(document.getElementById('inputDias').value) || 1;
+            const errorMsg = document.getElementById('errorDietasMax');
+            
+            errorMsg.classList.add('hidden');
+
+            if (select.value === '') return;
+
+            // Bloquear explícitamente si intentan añadir 0 días o algo inválido
+            const qty = parseInt(qtyInput.value);
+            if (isNaN(qty) || qty < 1) return;
+
+            const currentDias = listaDietas.reduce((acc, d) => acc + d.days, 0);
+
+            if (currentDias + qty > maxDias) {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            const price = parseFloat(select.value);
+            const name = select.options[select.selectedIndex].text.split(' (')[0];
+
+            listaDietas.push({ name, price, days: qty });
+            renderDietas();
+            ocultarResultados();
+
+            // Auto-expand list if hidden
+            const content = document.getElementById('dietasContent');
+            if (content.classList.contains('hidden')) {
+                toggleDietas();
+            }
+
+            qtyInput.value = 1;
+            select.value = '';
+        }
+
+        function eliminarDieta(index) {
+            listaDietas.splice(index, 1);
+            renderDietas();
+            ocultarResultados();
+        }
+
+        function moverDieta(index, dir) {
+            if (index + dir < 0 || index + dir >= listaDietas.length) return;
+            const temp = listaDietas[index];
+            listaDietas[index] = listaDietas[index + dir];
+            listaDietas[index + dir] = temp;
+            renderDietas();
+            ocultarResultados();
+        }
+
+        function renderDietas() {
+            const ul = document.getElementById('listaDietasUI');
+            const maxDias = parseInt(document.getElementById('inputDias').value) || 1;
+            const infoNota = document.getElementById('dietasInfoNota');
+            ul.innerHTML = '';
+            let totalDays = 0;
+
+            listaDietas.forEach((item, index) => {
+                totalDays += item.days;
+                const sum = item.price * item.days;
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white py-1.5 px-3 rounded-md border border-slate-200 shadow-sm text-sm';
+                
+                let moveControls = '';
+                if (listaDietas.length > 1) {
+                    moveControls = `
+                        <div class="flex items-center gap-2 ml-2 border-l border-slate-200 pl-3">
+                            <button type="button" onclick="moverDieta(${index}, -1)" class="text-slate-400 hover:text-blue-500 disabled:opacity-20 transition-colors leading-none" ${index === 0 ? 'disabled' : ''} title="Subir"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" onclick="moverDieta(${index}, 1)" class="text-slate-400 hover:text-blue-500 disabled:opacity-20 transition-colors leading-none" ${index === listaDietas.length - 1 ? 'disabled' : ''} title="Bajar"><i class="fa-solid fa-arrow-down"></i></button>
+                        </div>
+                    `;
+                }
+
+                li.innerHTML = `
+                    <div class="flex items-center gap-2 truncate pr-2">
+                        <span class="bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded text-xs flex-shrink-0">${item.days}x</span>
+                        <span class="font-medium text-slate-700 truncate" title="${item.name}">${item.name}</span>
+                    </div>
+                    <div class="flex items-center flex-shrink-0">
+                        <span class="text-slate-600 tabular-nums mr-4">${currencyFormatter.format(sum)}</span>
+                        <button type="button" onclick="eliminarDieta(${index})" class="text-red-400 hover:text-red-600 transition-colors" title="Eliminar">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        ${moveControls}
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+
+            if (listaDietas.length === 0) {
+                ul.innerHTML = '<li class="text-sm text-slate-400 italic py-2 text-center">Ninguna dieta añadida</li>';
+                if(infoNota) infoNota.classList.add('hidden');
+            } else if (listaDietas.length > 1) {
+                if(infoNota) infoNota.classList.remove('hidden');
+            } else {
+                if(infoNota) infoNota.classList.add('hidden');
+            }
+
+            const headerTotalSpan = document.getElementById('dietasHeaderTotal');
+            
+            // Advertencia visual si reducen los días generales posteriormente
+            if (totalDays > maxDias) {
+                headerTotalSpan.classList.add('text-red-600');
+                headerTotalSpan.classList.remove('text-blue-600');
+            } else {
+                headerTotalSpan.classList.add('text-blue-600');
+                headerTotalSpan.classList.remove('text-red-600');
+            }
+            
+            if (listaDietas.length > 0) {
+                headerTotalSpan.textContent = `${totalDays} dieta${totalDays === 1 ? '' : 's'} añadida${totalDays === 1 ? '' : 's'}`;
+                headerTotalSpan.classList.remove('hidden');
+            } else {
+                headerTotalSpan.classList.add('hidden');
+            }
+        }
+
+        function toggleMaterial() {
+            const content = document.getElementById('materialContent');
+            const chevron = document.getElementById('materialChevron');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
+        function toggleCustomMaterialFields() {
+            const select = document.getElementById('selectMaterial');
+            const customFields = document.getElementById('customMaterialFields');
+            const errorMsg = document.getElementById('errorCustomMaterial');
+            
+            if (select.value === 'custom') {
+                customFields.classList.remove('hidden');
+                customFields.classList.add('flex');
+                document.getElementById('inputCustomName').focus();
+            } else {
+                customFields.classList.add('hidden');
+                customFields.classList.remove('flex');
+                errorMsg.classList.add('hidden');
+            }
+        }
+
+        function agregarMaterial() {
+            const select = document.getElementById('selectMaterial');
+            const qtyInput = document.getElementById('inputMaterialQty');
+            const qty = parseInt(qtyInput.value) || 1;
+            const errorMsg = document.getElementById('errorCustomMaterial');
+            
+            let name, price;
+            errorMsg.classList.add('hidden');
+
+            // No hacer nada si está seleccionada la opción por defecto
+            if (select.value === '') {
+                return; 
+            }
+
+            if (select.value === 'custom') {
+                const nameInput = document.getElementById('inputCustomName');
+                const priceInput = document.getElementById('inputCustomPrice');
+                
+                name = nameInput.value.trim();
+                price = parseFloat(priceInput.value);
+
+                // Validación de los campos "Otros"
+                if (!name || isNaN(price) || price <= 0) {
+                    errorMsg.classList.remove('hidden');
+                    return; 
+                }
+                name = "Otros: " + name; 
+            } else {
+                price = parseFloat(select.value);
+                name = select.options[select.selectedIndex].text.split(' (')[0]; 
+            }
+
+            listaMaterial.push({ name, price, qty });
+            renderMaterial();
+            ocultarResultados();
+            
+            // Auto-expand list if hidden
+            const content = document.getElementById('materialContent');
+            if (content.classList.contains('hidden')) {
+                toggleMaterial();
+            }
+            
+            // Resetear inputs tras añadir
+            qtyInput.value = 1; 
+            document.getElementById('inputCustomName').value = '';
+            document.getElementById('inputCustomPrice').value = '';
+            select.value = ''; // Volver al placeholder 'Seleccionar material...' siempre
+            toggleCustomMaterialFields(); // Ocultar campos de "Otros" si estaban abiertos
+        }
+
+        function eliminarMaterial(index) {
+            listaMaterial.splice(index, 1);
+            renderMaterial();
+            ocultarResultados();
+        }
+
+        function renderMaterial() {
+            const ul = document.getElementById('listaMaterialUI');
+            const totalUI = document.getElementById('totalMaterialUI');
+            ul.innerHTML = '';
+            let total = 0;
+
+            listaMaterial.forEach((item, index) => {
+                const sum = item.price * item.qty;
+                total += sum;
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white py-1.5 px-3 rounded-md border border-slate-200 shadow-sm text-sm';
+                li.innerHTML = `
+                    <div class="flex items-center gap-2 truncate pr-2">
+                        <span class="bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded text-xs flex-shrink-0">${item.qty}x</span>
+                        <span class="font-medium text-slate-700 truncate" title="${item.name}">${item.name}</span>
+                    </div>
+                    <div class="flex items-center flex-shrink-0">
+                        <span class="text-slate-600 tabular-nums mr-4">${currencyFormatter.format(sum)}</span>
+                        <button type="button" onclick="eliminarMaterial(${index})" class="text-red-400 hover:text-red-600 transition-colors" title="Eliminar">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+
+            if (listaMaterial.length === 0) {
+                ul.innerHTML = '<li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>';
+            }
+
+            totalUI.textContent = currencyFormatter.format(total);
+
+            const headerTotalSpan = document.getElementById('materialHeaderTotal');
+            
+            if (listaMaterial.length > 0) {
+                headerTotalSpan.textContent = currencyFormatter.format(total);
+                headerTotalSpan.classList.remove('hidden');
+            } else {
+                headerTotalSpan.classList.add('hidden');
+            }
+        }
+
+        // --- FUNCIONES DE CÁLCULO ESTRICTO (MOTOR BANCARIO) ---
+        function round2(num) {
+            // Number.EPSILON asegura precisión matemática sin defectos flotantes
+            return Math.round((num + Number.EPSILON) * 100) / 100;
+        }
+
+        function calcularDia(bruto, porcentajeIRPF) {
+            // Redondeamos estrictamente el bruto y todos los pasos intermedios
+            bruto = round2(bruto);
+
+            const comision = round2(bruto * 0.05); 
+            const coste = round2(bruto - comision); 
+            
+            let segSocial = 0;
+            if (bruto <= 75) {
+                segSocial = 21;
+            } else if (bruto <= 477.25) {
+                const intermedio1 = coste * 0.25009;
+                const intermedio2 = (coste - intermedio1) * 0.0655;
+                segSocial = intermedio1 + intermedio2 + 2.5;
+            } else if (bruto <= 729.42) { // <- Usamos el valor truncado estricto
+                segSocial = 138.86;
+            } else if (bruto <= 1250.26) {
+                segSocial = 179.49;
+            } else if (bruto <= 2023.02) {
+                segSocial = 221.41;
+            } else if (bruto <= 2287.30) {
+                segSocial = 288.52;
+            } else if (bruto <= 2732.66) {
+                segSocial = 294.67;
+            } else if (bruto <= 3158.85) {
+                segSocial = 300.77;
+            } else {
+                segSocial = 310.27;
+            }
+
+            segSocial = round2(segSocial);
+            const baseLiq = round2(coste - segSocial); 
+            const irpf = round2(baseLiq * (porcentajeIRPF / 100)); 
+            const aLiquidar = round2(baseLiq - irpf); 
+
+            return { bruto, comision, coste, segSocial, baseLiq, irpf, aLiquidar };
+        }
+
+        // --- MOTOR DE SIMULACIÓN ---
+        function simularEscenario(importeBrutoPrueba, params) {
+            importeBrutoPrueba = round2(importeBrutoPrueba);
+            let bucket = round2(importeBrutoPrueba - (params.dias * 75));
+            let dData = [];
+
+            for (let i = 1; i <= params.dias; i++) {
+                dData.push({ dia: i, cache: 75, km: 0, dieta: 0, alquiler: 0 });
+            }
+
+            if (params.km > 0) {
+                let reqKm = params.km * 0.2737;
+                let totalReqKm = round2(reqKm * params.dias);
+                let availableKm = Math.min(totalReqKm, bucket);
+                let perDayKm = round2(availableKm / params.dias); 
+                for (let i = 0; i < params.dias; i++) {
+                    let alloc = perDayKm;
+                    if (i === params.dias - 1) {
+                        alloc = round2(availableKm - (perDayKm * (params.dias - 1)));
+                    }
+                    dData[i].km = alloc;
+                    bucket = round2(bucket - alloc);
+                }
+                bucket = Math.max(0, bucket); 
+            }
+
+            if (params.listaDietas && params.listaDietas.length > 0) {
+                let dietasSolicitadas = [];
+                params.listaDietas.forEach(d => {
+                    for(let i = 0; i < d.days; i++) {
+                        dietasSolicitadas.push(round2(d.price));
+                    }
+                });
+                
+                dietasSolicitadas = dietasSolicitadas.slice(0, params.dias);
+                
+                for (let i = 0; i < dietasSolicitadas.length; i++) {
+                    let reqDieta = dietasSolicitadas[i];
+                    let availableDieta = Math.min(reqDieta, bucket);
+                    dData[i].dieta = availableDieta;
+                    bucket = round2(bucket - availableDieta);
+                }
+                bucket = Math.max(0, bucket);
+            }
+
+            let gastosJustificadosSim = 0;
+            if (params.gastos > 0 && bucket > 0) {
+                gastosJustificadosSim = Math.min(round2(params.gastos), bucket);
+                bucket = round2(bucket - gastosJustificadosSim);
+            }
+
+            if (params.totalAlquiler > 0) {
+                let reqAlquilerDia = round2(params.totalAlquiler);
+                for (let i = 0; i < params.dias; i++) {
+                    let alquilerDiaBruto = Math.min(reqAlquilerDia, bucket);
+                    dData[i].alquiler = alquilerDiaBruto;
+                    bucket = round2(bucket - alquilerDiaBruto);
+                }
+                bucket = Math.max(0, bucket);
+            }
+
+            if (bucket > 0) {
+                dData[dData.length - 1].cache = round2(dData[dData.length - 1].cache + bucket);
+            }
+
+            let dayResults = [];
+            let totalsZenit = { bruto: 0, comision: 0, coste: 0, segSocial: 0, irpf: 0, aLiquidar: 0 };
+
+            for (let i = 0; i < dData.length; i++) {
+                const res = calcularDia(dData[i].cache, params.irpf);
+                totalsZenit.bruto = round2(totalsZenit.bruto + res.bruto);
+                totalsZenit.comision = round2(totalsZenit.comision + res.comision);
+                totalsZenit.coste = round2(totalsZenit.coste + res.coste);
+                totalsZenit.segSocial = round2(totalsZenit.segSocial + res.segSocial);
+                totalsZenit.irpf = round2(totalsZenit.irpf + res.irpf);
+                totalsZenit.aLiquidar = round2(totalsZenit.aLiquidar + res.aLiquidar);
+
+                let dayObj = { cache: res, dataOriginal: dData[i] };
+
+                if (dData[i].km > 0) {
+                    const c = round2(dData[i].km * 0.05); 
+                    const bl = round2(dData[i].km - c);
+                    totalsZenit.bruto = round2(totalsZenit.bruto + dData[i].km); 
+                    totalsZenit.comision = round2(totalsZenit.comision + c); 
+                    totalsZenit.coste = round2(totalsZenit.coste + bl); 
+                    totalsZenit.aLiquidar = round2(totalsZenit.aLiquidar + bl);
+                }
+                if (dData[i].dieta > 0) {
+                    const c = round2(dData[i].dieta * 0.05); 
+                    const bl = round2(dData[i].dieta - c);
+                    totalsZenit.bruto = round2(totalsZenit.bruto + dData[i].dieta); 
+                    totalsZenit.comision = round2(totalsZenit.comision + c); 
+                    totalsZenit.coste = round2(totalsZenit.coste + bl); 
+                    totalsZenit.aLiquidar = round2(totalsZenit.aLiquidar + bl);
+                }
+                if (dData[i].alquiler > 0) {
+                    const c = round2(dData[i].alquiler * 0.05); 
+                    const bl = round2(dData[i].alquiler - c);
+                    totalsZenit.bruto = round2(totalsZenit.bruto + dData[i].alquiler); 
+                    totalsZenit.comision = round2(totalsZenit.comision + c); 
+                    totalsZenit.coste = round2(totalsZenit.coste + bl); 
+                }
+                dayResults.push(dayObj);
+            }
+
+            let gastosRes = null;
+            if (gastosJustificadosSim > 0) {
+                const c = round2(gastosJustificadosSim * 0.05); 
+                const bl = round2(gastosJustificadosSim - c);
+                totalsZenit.bruto = round2(totalsZenit.bruto + gastosJustificadosSim); 
+                totalsZenit.comision = round2(totalsZenit.comision + c); 
+                totalsZenit.coste = round2(totalsZenit.coste + bl); 
+                totalsZenit.aLiquidar = round2(totalsZenit.aLiquidar + bl);
+                gastosRes = { bruto: gastosJustificadosSim, comision: c, baseLiq: bl, aLiquidar: bl };
+            }
+
+            let totalAllocatedMaterial = dData.reduce((acc, curr) => round2(acc + curr.alquiler), 0);
+            let taimanNeto = 0;
+            let taimanRes = null;
+            
+            if (totalAllocatedMaterial > 0) {
+                const importe = round2(totalAllocatedMaterial - round2(totalAllocatedMaterial * 0.05)); 
+                const comision = round2(importe * 0.05);
+                const baseLiq = round2(importe - comision);
+                const irpf = round2(baseLiq * 0.07);
+                taimanNeto = round2(baseLiq - irpf);
+                taimanRes = { importe, comision, baseLiq, irpf, aLiquidar: taimanNeto };
+            }
+
+            return {
+                brutoEvaluado: importeBrutoPrueba,
+                netoCalculado: round2(totalsZenit.aLiquidar + taimanNeto),
+                dayResults,
+                gastosRes,
+                taimanRes,
+                totalsZenit
+            };
+        }
+
+        function calcular() {
+            let inputPrincipal = parseFloat(document.getElementById('inputImportePrincipal').value) || 0;
+            let inputDias = parseInt(document.getElementById('inputDias').value) || 1; 
+            let inputIRPF = parseFloat(document.getElementById('inputIRPF').value) || 0;
+            let inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            let inputGastos = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
+            let totalAlquiler = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            
+            const errorImporteBruto = document.getElementById('errorImporteBruto');
+            const warningImporteNeto = document.getElementById('warningImporteNeto');
+            
+            errorImporteBruto.classList.add('hidden');
+            warningImporteNeto.classList.add('hidden');
+
+            if (inputDias < 1) { inputDias = 1; document.getElementById('inputDias').value = 1; }
+            if (inputIRPF < 2) { inputIRPF = 2; document.getElementById('inputIRPF').value = 2; }
+
+            const params = {
+                dias: inputDias, irpf: inputIRPF, km: inputKilometraje, 
+                gastos: inputGastos, totalAlquiler: totalAlquiler,
+                listaDietas: listaDietas
+            };
+
+            const minBrutoRequerido = inputDias * 75;
+            let brutoFinal = 0;
+            let resultadoCalculo = null;
+
+            // --- Helper para calcular el volumen de gastos extra (para buscar límites SS) ---
+            function getReqExtras(p) {
+                let rExtras = 0;
+                if (p.km > 0) rExtras = round2(rExtras + round2(p.km * 0.2737 * p.dias));
+                if (p.listaDietas && p.listaDietas.length > 0) {
+                    let dSolicitadas = [];
+                    p.listaDietas.forEach(d => {
+                        for(let i = 0; i < d.days; i++) dSolicitadas.push(round2(d.price));
+                    });
+                    dSolicitadas = dSolicitadas.slice(0, p.dias);
+                    rExtras = round2(rExtras + dSolicitadas.reduce((a, b) => round2(a + b), 0));
+                }
+                if (p.gastos > 0) rExtras = round2(rExtras + round2(p.gastos));
+                if (p.totalAlquiler > 0) rExtras = round2(rExtras + (round2(p.totalAlquiler) * p.dias));
+                return rExtras;
+            }
+
+            const reqExtras = getReqExtras(params);
+            const thresholdsCache = [75.00, 477.25, 729.42, 1250.26, 2023.02, 2287.30, 2732.66, 3158.85, 500000.00];
+            const baseBruto = round2(minBrutoRequerido + reqExtras);
+
+            if (calcMode === 'bruto') {
+                if (inputPrincipal < minBrutoRequerido && document.getElementById('inputImportePrincipal').value !== "") {
+                    inputPrincipal = minBrutoRequerido; 
+                    document.getElementById('inputImportePrincipal').value = minBrutoRequerido; 
+                    errorImporteBruto.textContent = `El importe mínimo para ${inputDias} día(s) es ${minBrutoRequerido}€.`;
+                    errorImporteBruto.classList.remove('hidden'); 
+                }
+                brutoFinal = inputPrincipal;
+                resultadoCalculo = simularEscenario(brutoFinal, params);
+                document.getElementById('goalSeekBanner').classList.add('hidden');
+
+                // --- NUEVO: COMPROBACIÓN DE OPTIMIZACIÓN (BRUTO A NETO) ---
+                let possibleOptimizations = [];
+                for (let i = 0; i < thresholdsCache.length; i++) {
+                    let peakGross = round2(baseBruto + (thresholdsCache[i] - 75));
+                    if (peakGross <= brutoFinal - 0.01) { // Solo si es estrictamente menor al que el usuario quiere facturar
+                        let simPeak = simularEscenario(peakGross, params);
+                        // Si con un bruto menor ganamos igual o más dinero neto...
+                        if (simPeak.netoCalculado >= resultadoCalculo.netoCalculado) {
+                            possibleOptimizations.push({ bruto: peakGross, neto: simPeak.netoCalculado });
+                        }
+                    }
+                }
+
+                const optBanner = document.getElementById('optimizationBanner');
+                if (possibleOptimizations.length > 0) {
+                    // Nos quedamos con el que dé MAYOR neto. Si empatan en neto, el que exija MENOR bruto.
+                    let bestOpt = possibleOptimizations.reduce((prev, current) => {
+                        if (current.neto > prev.neto) return current;
+                        if (current.neto === prev.neto && current.bruto < prev.bruto) return current;
+                        return prev;
+                    });
+
+                    optBanner.classList.remove('hidden');
+                    let msg = `Si facturaras <strong>${currencyFormatter.format(bestOpt.bruto)}</strong> brutos (menos que ahora), `;
+                    if (bestOpt.neto > resultadoCalculo.netoCalculado) {
+                        msg += `ganarías <strong>MÁS</strong> dinero neto (<strong>${currencyFormatter.format(bestOpt.neto)}</strong>) `;
+                    } else {
+                        msg += `ganarías exactamente el <strong>MISMO</strong> neto (<strong>${currencyFormatter.format(bestOpt.neto)}</strong>) `;
+                    }
+                    msg += `al evitar saltar de tramo en la Seguridad Social.`;
+                    document.getElementById('optMessage').innerHTML = msg;
+                } else {
+                    if (optBanner) optBanner.classList.add('hidden');
+                }
+
+            } else {
+                let optBanner = document.getElementById('optimizationBanner');
+                if(optBanner) optBanner.classList.add('hidden'); // Siempre oculto en modo Objetivo Neto
+
+                let objetivoNeto = inputPrincipal;
+                let simMinima = simularEscenario(minBrutoRequerido, params);
+                
+                let targetCents = Math.round(objetivoNeto * 100);
+                let simMinimaCents = Math.round(simMinima.netoCalculado * 100);
+
+                if (targetCents < simMinimaCents) {
+                    warningImporteNeto.classList.remove('hidden');
+                    brutoFinal = minBrutoRequerido;
+                    resultadoCalculo = simMinima;
+                } else if (targetCents === simMinimaCents) {
+                    brutoFinal = minBrutoRequerido;
+                    resultadoCalculo = simMinima;
+                } else {
+                    let intervals = [];
+                    let startPoint = minBrutoRequerido;
+                    
+                    for (let i = 0; i < thresholdsCache.length; i++) {
+                        let endPoint = round2(baseBruto + (thresholdsCache[i] - 75));
+                        if (endPoint >= startPoint) {
+                            intervals.push({ low: startPoint, high: endPoint });
+                            startPoint = round2(endPoint + 0.01); 
+                        }
+                    }
+
+                    let bestBruto = null;
+                    let bestSim = null;
+                    let minGlobalDiff = Infinity;
+
+                    for (let seg of intervals) {
+                        let simLow = simularEscenario(seg.low, params);
+                        let netLowCents = Math.round(simLow.netoCalculado * 100);
+                        
+                        if (netLowCents === targetCents) {
+                            bestBruto = seg.low;
+                            bestSim = simLow;
+                            break;
+                        }
+
+                        let simHigh = simularEscenario(seg.high, params);
+                        let maxNetInSeg = Math.round(simHigh.netoCalculado * 100);
+
+                        // Miramos si nuestro objetivo entra en la rampa continua de este tramo
+                        if (targetCents >= netLowCents - 2 && targetCents <= maxNetInSeg + 2) {
+                            let lowCents = Math.round(seg.low * 100);
+                            let highCents = Math.round(seg.high * 100);
+                            let iter = 0;
+                            
+                            while (lowCents <= highCents && iter < 100) {
+                                let midCents = Math.floor((lowCents + highCents) / 2);
+                                let mid = midCents / 100;
+                                let sim = simularEscenario(mid, params);
+                                
+                                let netCents = Math.round(sim.netoCalculado * 100);
+                                let diffCents = netCents - targetCents;
+                                
+                                if (Math.abs(diffCents) < minGlobalDiff) {
+                                    minGlobalDiff = Math.abs(diffCents);
+                                    bestBruto = mid;
+                                    bestSim = sim;
+                                }
+
+                                if (diffCents === 0) {
+                                    bestBruto = mid;
+                                    bestSim = sim;
+                                    minGlobalDiff = 0;
+                                    // Forzamos hacia abajo para conseguir siempre el Bruto mínimo que da este mismo Neto
+                                    highCents = midCents - 1;
+                                } else if (diffCents < 0) {
+                                    lowCents = midCents + 1; 
+                                } else {
+                                    highCents = midCents - 1; 
+                                }
+                                iter++;
+                            }
+                            
+                            if (minGlobalDiff === 0) break; 
+                        }
+                    }
+                    
+                    brutoFinal = bestBruto || (objetivoNeto * 3 + minBrutoRequerido);
+                    resultadoCalculo = bestSim || simularEscenario(brutoFinal, params);
+                }
+                
+                document.getElementById('gsNetoTarget').textContent = currencyFormatter.format(objetivoNeto);
+                document.getElementById('gsBrutoResult').textContent = currencyFormatter.format(brutoFinal);
+                document.getElementById('goalSeekBanner').classList.remove('hidden');
+            }
+
+            // Almacenar globalmente para exportaciones (Email, PDF...)
+            globalSimulationResult = resultadoCalculo;
+
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // --- RELLENAR RESUMEN PARA EL PDF ---
+            let dietasSummary = 'Ninguna dieta añadida';
+            if (listaDietas.length > 0) {
+                dietasSummary = listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>');
+            }
+            
+            let materialSummary = 'Ningún material añadido';
+            if (listaMaterial.length > 0) {
+                materialSummary = listaMaterial.map(m => `${m.qty}x ${m.name}`).join(', ');
+            }
+
+            let cpInfo = '';
+            if (inputKilometraje > 0) {
+                const cpOri = document.getElementById('inputCpOrigen').value;
+                const cpDes = document.getElementById('inputCpDestino').value;
+                if (cpOri || cpDes) {
+                    cpInfo = `<br><span class="text-xs font-normal text-slate-600">Origen: ${cpOri || '-'} | Destino: ${cpDes || '-'}</span>`;
+                }
+            }
+
+            let block1Title, block1Value, block2Title, block2Value, block2ColorClass;
+
+            if (calcMode === 'bruto') {
+                block1Title = 'Importe de venta bruto';
+                block1Value = currencyFormatter.format(inputPrincipal);
+                block2Title = 'Total a liquidar (Neto)';
+                block2Value = currencyFormatter.format(resultadoCalculo.netoCalculado);
+                block2ColorClass = 'text-blue-700'; 
+            } else {
+                block1Title = 'Objetivo Neto Solicitado';
+                block1Value = currencyFormatter.format(inputPrincipal);
+                block2Title = 'Importe Bruto Resultante';
+                block2Value = currencyFormatter.format(brutoFinal);
+                block2ColorClass = 'text-blue-600';
+            }
+            
+            const summaryHtml = `
+                <div><span class="text-slate-500 block text-xs">${block1Title}</span><span class="font-bold text-slate-800">${block1Value}</span></div>
+                <div><span class="text-slate-500 block text-xs">${block2Title}</span><span class="font-bold text-slate-800 ${block2ColorClass}">${block2Value}</span></div>
+                <div><span class="text-slate-500 block text-xs">Nº Días</span><span class="font-bold text-slate-800">${inputDias}</span></div>
+                <div><span class="text-slate-500 block text-xs">% retención IRPF</span><span class="font-bold text-slate-800">${inputIRPF}%</span></div>
+                <div><span class="text-slate-500 block text-xs">Kilometraje Diario</span><span class="font-bold text-slate-800">${inputKilometraje} km${cpInfo}</span></div>
+                <div><span class="text-slate-500 block text-xs">Gastos Justificados Totales</span><span class="font-bold text-slate-800">${currencyFormatter.format(inputGastos)}</span></div>
+                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Dietas</span><span class="font-bold text-slate-800 text-sm">${dietasSummary}</span></div>
+                <div class="col-span-2 md:col-span-2 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Material de Alquiler</span><span class="font-bold text-slate-800 text-sm">${materialSummary}</span></div>
+            `;
+            document.getElementById('pdfSummaryContent').innerHTML = summaryHtml;
+            // ------------------------------------
+
+            const multiDayBody = document.getElementById('multiDayBody');
+            const multiDayFoot = document.getElementById('multiDayFoot');
+            multiDayBody.innerHTML = '';
+
+            resultadoCalculo.dayResults.forEach((resDia) => {
+                const diaNum = resDia.dataOriginal.dia;
+                const dData = resDia.dataOriginal;
+                const cacheRes = resDia.cache;
+
+                const dayBlock = document.createElement('div');
+                dayBlock.className = 'break-inside-avoid flex flex-col border-b border-slate-200 last:border-0';
+
+                let dayHtml = `
+                    <div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center">
+                        <i class="fa-regular fa-calendar-days mr-2"></i>Día ${diaNum}
+                    </div>
+                    <div class="flex flex-col divide-y divide-slate-100">
+                `;
+
+                dayHtml += `
+                    <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                        <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-microphone text-slate-400 mr-2"></i>Caché</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(cacheRes.bruto)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(cacheRes.comision)}</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(cacheRes.coste)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(cacheRes.segSocial)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(cacheRes.irpf)}</div>
+                        <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(cacheRes.aLiquidar)}</div>
+                    </div>
+                `;
+
+                if (dData.km > 0) {
+                    const c = dData.km * 0.05; const bl = dData.km - c;
+                    dayHtml += `
+                        <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-car text-slate-400 mr-2"></i>Kilometraje</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(dData.km)}</div>
+                            <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(c)}</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(bl)}</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(bl)}</div>
+                        </div>
+                    `;
+                }
+
+                if (dData.dieta > 0) {
+                    const c = dData.dieta * 0.05; const bl = dData.dieta - c;
+                    dayHtml += `
+                        <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-utensils text-slate-400 mr-2"></i>Dietas</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(dData.dieta)}</div>
+                            <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(c)}</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(bl)}</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(bl)}</div>
+                        </div>
+                    `;
+                }
+
+                if (dData.alquiler > 0) {
+                    const c = dData.alquiler * 0.05; const bl = dData.alquiler - c;
+                    dayHtml += `
+                        <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                            <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid fa-guitar text-slate-400 mr-2"></i>Alquiler Material</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(dData.alquiler)}</div>
+                            <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(c)}</div>
+                            <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(bl)}</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right tabular-nums text-slate-400">-</div>
+                            <div class="text-right text-purple-600 font-bold italic">via Taiman</div>
+                        </div>
+                    `;
+                }
+
+                dayHtml += `</div>`;
+                dayBlock.innerHTML = dayHtml;
+                multiDayBody.appendChild(dayBlock);
+            });
+
+            if (resultadoCalculo.gastosRes) {
+                const gRes = resultadoCalculo.gastosRes;
+                const gastosBlock = document.createElement('div');
+                gastosBlock.className = 'break-inside-avoid border-b border-slate-200 bg-slate-100/50';
+                gastosBlock.innerHTML = `
+                    <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                        <div class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Gastos Justificados</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(gRes.bruto)}</div>
+                        <div class="text-right tabular-nums text-red-600">- ${currencyFormatter.format(gRes.comision)}</div>
+                        <div class="text-right tabular-nums text-slate-900">${currencyFormatter.format(gRes.baseLiq)}</div>
+                        <div class="text-right tabular-nums text-slate-400">-</div>
+                        <div class="text-right tabular-nums text-slate-400">-</div>
+                        <div class="text-right tabular-nums text-blue-700 font-bold">${currencyFormatter.format(gRes.aLiquidar)}</div>
+                    </div>
+                `;
+                multiDayBody.appendChild(gastosBlock);
+            }
+
+            const tz = resultadoCalculo.totalsZenit;
+            multiDayFoot.innerHTML = `
+                <div class="py-4 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
+                    <div class="font-bold text-slate-900 uppercase text-xs tracking-wider">Total Zenit</div>
+                    <div class="text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(tz.bruto)}</div>
+                    <div class="text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(tz.comision)}</div>
+                    <div class="text-right tabular-nums font-bold text-slate-900">${currencyFormatter.format(tz.coste)}</div>
+                    <div class="text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(tz.segSocial)}</div>
+                    <div class="text-right tabular-nums font-bold text-red-600">- ${currencyFormatter.format(tz.irpf)}</div>
+                    <div class="text-right tabular-nums font-bold text-blue-700 text-lg" id="resMultiTotal">${currencyFormatter.format(tz.aLiquidar)}</div>
+                </div>
+            `;
+
+            const totalElement = document.getElementById('resMultiTotal');
+            totalElement.classList.add('scale-105', 'transition-transform');
+            setTimeout(() => totalElement.classList.remove('scale-105'), 200);
+
+            // RENDERIZAR TABLA TAIMAN
+            const taimanSection = document.getElementById('taimanSection');
+            const taimanDivider = document.getElementById('taimanDivider');
+
+            if (resultadoCalculo.taimanRes) {
+                const tr = resultadoCalculo.taimanRes;
+                document.getElementById('resTaimanImporte').textContent = currencyFormatter.format(tr.importe);
+                document.getElementById('resTaimanComision').textContent = "- " + currencyFormatter.format(tr.comision);
+                document.getElementById('resTaimanBaseLiq').textContent = currencyFormatter.format(tr.baseLiq);
+                document.getElementById('resTaimanIRPF').textContent = "- " + currencyFormatter.format(tr.irpf);
+                document.getElementById('resTaimanALiquidar').textContent = currencyFormatter.format(tr.aLiquidar);
+                
+                taimanSection.classList.remove('hidden');
+                taimanDivider.classList.remove('hidden');
+            } else {
+                taimanSection.classList.add('hidden');
+                taimanDivider.classList.add('hidden');
+            }
+        }
+
+        // --- EXPORTAR AL PORTAPAPELES PARA EMAIL ---
+        function copiarPortapapeles() {
+            if (!globalSimulationResult) return;
+
+            let html = `
+            <div style="font-family: Arial, Helvetica, sans-serif; color: #334155; max-width: 1000px;">
+                <h3 style="color: #1e293b; font-size: 16px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglose de la Liquidación Zenit</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;">
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: left;">Día / Concepto</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Importe</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Comisión</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Base liquidable</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Seg. Soc.</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">IRPF</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">A liquidar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            globalSimulationResult.dayResults.forEach(resDia => {
+                const diaNum = resDia.dataOriginal.dia;
+                const dData = resDia.dataOriginal;
+                const cache = resDia.cache;
+
+                html += `
+                    <tr style="background-color: #eff6ff;">
+                        <td colspan="7" style="padding: 8px; font-weight: bold; color: #1e40af; border-bottom: 1px solid #e2e8f0; white-space: nowrap; text-align: left;">Día ${diaNum}</td>
+                    </tr>
+                `;
+
+                html += `
+                    <tr>
+                        <td style="padding: 6px 8px 6px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; text-align: left;">Caché</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">${currencyFormatter.format(cache.bruto)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(cache.comision)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">${currencyFormatter.format(cache.coste)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(cache.segSocial)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(cache.irpf)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1d4ed8; white-space: nowrap;">${currencyFormatter.format(cache.aLiquidar)}</td>
+                    </tr>
+                `;
+
+                if (dData.km > 0) {
+                    const c = dData.km * 0.05; const bl = dData.km - c;
+                    html += `
+                    <tr>
+                        <td style="padding: 6px 8px 6px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; text-align: left;">Kilometraje</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">${currencyFormatter.format(dData.km)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(c)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">${currencyFormatter.format(bl)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #94a3b8; white-space: nowrap;">-</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #94a3b8; white-space: nowrap;">-</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1d4ed8; white-space: nowrap;">${currencyFormatter.format(bl)}</td>
+                    </tr>`;
+                }
+                if (dData.dieta > 0) {
+                    const c = dData.dieta * 0.05; const bl = dData.dieta - c;
+                    html += `
+                    <tr>
+                        <td style="padding: 6px 8px 6px 20px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; text-align: left;">Dietas</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">${currencyFormatter.format(dData.dieta)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(c)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap;">${currencyFormatter.format(bl)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #94a3b8; white-space: nowrap;">-</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #94a3b8; white-space: nowrap;">-</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1d4ed8; white-space: nowrap;">${currencyFormatter.format(bl)}</td>
+                    </tr>`;
+                }
+                if (dData.alquiler > 0) {
+                    const c = dData.alquiler * 0.05; const bl = dData.alquiler - c;
+                    html += `
+                    <tr>
+                        <td style="padding: 6px 8px 6px 20px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; text-align: left;">Alquiler Material</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; white-space: nowrap;">${currencyFormatter.format(dData.alquiler)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(c)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; white-space: nowrap;">${currencyFormatter.format(bl)}</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; color: #94a3b8; white-space: nowrap;">-</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; color: #94a3b8; white-space: nowrap;">-</td>
+                        <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: bold; font-style: italic; color: #9333ea; white-space: nowrap;">via Taiman</td>
+                    </tr>`;
+                }
+            });
+
+            if (globalSimulationResult.gastosRes) {
+                const gRes = globalSimulationResult.gastosRes;
+                html += `
+                <tr style="background-color: #f8fafc;">
+                    <td style="padding: 8px 8px; font-weight: bold; border-bottom: 1px solid #cbd5e1; white-space: nowrap; text-align: left;">Gastos Justificados</td>
+                    <td style="padding: 8px 8px; text-align: right; border-bottom: 1px solid #cbd5e1; white-space: nowrap;">${currencyFormatter.format(gRes.bruto)}</td>
+                    <td style="padding: 8px 8px; text-align: right; border-bottom: 1px solid #cbd5e1; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(gRes.comision)}</td>
+                    <td style="padding: 8px 8px; text-align: right; border-bottom: 1px solid #cbd5e1; white-space: nowrap;">${currencyFormatter.format(gRes.baseLiq)}</td>
+                    <td style="padding: 8px 8px; text-align: right; border-bottom: 1px solid #cbd5e1; color: #94a3b8; white-space: nowrap;">-</td>
+                    <td style="padding: 8px 8px; text-align: right; border-bottom: 1px solid #cbd5e1; color: #94a3b8; white-space: nowrap;">-</td>
+                    <td style="padding: 8px 8px; text-align: right; border-bottom: 1px solid #cbd5e1; font-weight: bold; color: #1d4ed8; white-space: nowrap;">${currencyFormatter.format(gRes.aLiquidar)}</td>
+                </tr>`;
+            }
+
+            const tz = globalSimulationResult.totalsZenit;
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr style="background-color: #eff6ff;">
+                            <td style="padding: 10px 8px; font-weight: bold; text-transform: uppercase; white-space: nowrap; text-align: left;">Total Zenit</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; white-space: nowrap;">${currencyFormatter.format(tz.bruto)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(tz.comision)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; white-space: nowrap;">${currencyFormatter.format(tz.coste)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(tz.segSocial)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(tz.irpf)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #1d4ed8; font-size: 14px; white-space: nowrap;">${currencyFormatter.format(tz.aLiquidar)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+
+            if (globalSimulationResult.taimanRes) {
+                const tr = globalSimulationResult.taimanRes;
+                html += `
+                <h3 style="color: #1e293b; font-size: 16px; margin-bottom: 8px; margin-top: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglose de la Liquidación Taiman</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;">
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: left;">Concepto</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Importe</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Comisión</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">Base liquidable</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">7% IRPF</th>
+                            <th style="padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: bold; white-space: nowrap; text-align: right;">A liquidar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background-color: #faf5ff;">
+                            <td style="padding: 10px 8px; font-weight: bold; color: #9333ea; text-transform: uppercase; white-space: nowrap; text-align: left;">Liquidación Taiman</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; white-space: nowrap;">${currencyFormatter.format(tr.importe)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(tr.comision)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; white-space: nowrap;">${currencyFormatter.format(tr.baseLiq)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626; white-space: nowrap;">- ${currencyFormatter.format(tr.irpf)}</td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #7e22ce; font-size: 14px; white-space: nowrap;">${currencyFormatter.format(tr.aLiquidar)}</td>
+                        </tr>
+                    </tbody>
+                </table>`;
+            }
+            
+            html += `</div>`;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.innerHTML = html;
+            document.body.appendChild(tempDiv);
+
+            const range = document.createRange();
+            range.selectNodeContents(tempDiv);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            try {
+                document.execCommand('copy');
+                
+                const btn = document.getElementById('btnCopyEmail');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-green-500"></i> ¡Copiado con éxito!';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                }, 2500);
+
+            } catch (err) {
+                console.error('Error al copiar al portapapeles:', err);
+                alert('Hubo un problema al copiar. Por favor, inténtelo de nuevo.');
+            }
+
+            document.body.removeChild(tempDiv);
+            selection.removeAllRanges();
+        }
+
+        // --- EXPORTACIÓN A PDF ---
+        function generarPDF() {
+            const element = document.getElementById('resultsSection');
+            const btnPDF = document.getElementById('btnDownloadPDF');
+            const btnEmail = document.getElementById('btnCopyEmail');
+            const summary = document.getElementById('pdfSummary');
+
+            // --- AJUSTES ANTI-RECORTE ---
+            // Quitamos el scroll horizontal para que la librería no corte los laterales
+            const tablasScroll = element.querySelectorAll('.overflow-x-auto');
+            tablasScroll.forEach(t => t.classList.remove('overflow-x-auto'));
+            
+            // TRUCO PARA LÍNEAS FANTASMAS: 
+            // Quitamos el borde externo y el redondeo temporalmente.
+            const contenedoresTabla = element.querySelectorAll('.rounded-xl.border');
+            contenedoresTabla.forEach(t => {
+                t.classList.remove('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+            });
+
+            // Añadimos padding al contenedor principal para que los bordes y sombras no choquen con el margen del documento
+            element.classList.add('px-4', 'pb-4');
+
+            // Preparamos la vista: ocultar botones de acción, mostrar resumen de inputs
+            btnPDF.classList.add('hidden');
+            if (btnEmail) btnEmail.classList.add('hidden');
+            summary.classList.remove('hidden');
+
+            // Opciones de configuración del PDF
+            const opt = {
+                margin:       [10, 15, 10, 15], // Márgenes: top, left, bottom, right
+                filename:     'Liquidacion_Zenit_Taiman.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }, 
+                pagebreak:    { mode: 'css', avoid: '.break-inside-avoid' } 
+            };
+
+            // Generar PDF forzando un pequeño retraso
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    // Restaurar la vista original web
+                    btnPDF.classList.remove('hidden');
+                    if (btnEmail) btnEmail.classList.remove('hidden');
+                    summary.classList.add('hidden');
+                    element.classList.remove('px-4', 'pb-4');
+                    tablasScroll.forEach(t => t.classList.add('overflow-x-auto'));
+                    contenedoresTabla.forEach(t => {
+                        t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+                    });
+                }).catch(err => {
+                    console.error("Error generando PDF:", err);
+                    // Restaurar también en caso de error
+                    btnPDF.classList.remove('hidden');
+                    if (btnEmail) btnEmail.classList.remove('hidden');
+                    summary.classList.add('hidden');
+                    element.classList.remove('px-4', 'pb-4');
+                    tablasScroll.forEach(t => t.classList.add('overflow-x-auto'));
+                    contenedoresTabla.forEach(t => {
+                        t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm');
+                    });
+                });
+            }, 500); 
+        }
+    </script>
+</body>
+</html>
