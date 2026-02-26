@@ -903,34 +903,95 @@
             } else {
                 let objetivoNeto = inputPrincipal;
                 let simMinima = simularEscenario(minBrutoRequerido, params);
+                const tolerance = 0.011; // Ampliamos la tolerancia a 1 céntimo real
                 
-                if (objetivoNeto <= simMinima.netoCalculado) {
+                // 1. Comprobamos si el objetivo está por debajo del mínimo legal o es exactamente el mínimo
+                if (objetivoNeto < simMinima.netoCalculado - tolerance) {
                     warningImporteNeto.classList.remove('hidden');
                     brutoFinal = minBrutoRequerido;
                     resultadoCalculo = simMinima;
+                } else if (Math.abs(objetivoNeto - simMinima.netoCalculado) <= tolerance) {
+                    brutoFinal = minBrutoRequerido;
+                    resultadoCalculo = simMinima;
                 } else {
-                    let low = minBrutoRequerido;
-                    let high = objetivoNeto * 3 + minBrutoRequerido + 1000; 
-                    let iter = 0;
+                    // 2. Calculamos los gastos extra exactos que consumen el "bucket" antes del caché
+                    let reqExtras = 0;
+                    if (params.km > 0) reqExtras += (params.km * 0.2737) * params.dias;
+                    if (params.listaDietas && params.listaDietas.length > 0) {
+                        let dietasSolicitadas = [];
+                        params.listaDietas.forEach(d => {
+                            for(let i = 0; i < d.days; i++) {
+                                dietasSolicitadas.push(d.price);
+                            }
+                        });
+                        dietasSolicitadas = dietasSolicitadas.slice(0, params.dias);
+                        reqExtras += dietasSolicitadas.reduce((a, b) => a + b, 0);
+                    }
+                    if (params.gastos > 0) reqExtras += params.gastos;
+                    if (params.totalAlquiler > 0) reqExtras += params.totalAlquiler * params.dias;
+
+                    // 3. Puntos exactos donde el Caché salta de tramo en la Seg. Social
+                    const thresholdsCache = [75, 477.25, 729.421578947369, 1250.26368421053, 2023.02157894737, 2287.30578947368, 2732.66368421053, 3158.85315789474, 500000];
+                    const baseBruto = minBrutoRequerido + reqExtras;
                     
-                    while (low <= high && iter < 100) {
-                        let mid = (low + high) / 2;
-                        let sim = simularEscenario(mid, params);
-                        
-                        if (Math.abs(sim.netoCalculado - objetivoNeto) < 0.005) {
-                            brutoFinal = mid;
-                            resultadoCalculo = sim;
+                    let intervals = [];
+                    let startPoint = minBrutoRequerido;
+                    
+                    // Construimos los tramos donde sabemos que la función es continua (sin saltos)
+                    for (let i = 0; i < thresholdsCache.length; i++) {
+                        let endPoint = baseBruto + (thresholdsCache[i] - 75);
+                        if (endPoint >= startPoint) {
+                            intervals.push({ low: startPoint, high: endPoint });
+                            startPoint = endPoint + 0.001; // El siguiente empieza justo después del salto
+                        }
+                    }
+
+                    let bestBruto = null;
+                    let bestSim = null;
+
+                    // 4. Buscamos de izquierda a derecha (asegurando el menor bruto primero)
+                    for (let seg of intervals) {
+                        // Probar siempre el límite inferior exacto por si clava el céntimo
+                        let simLow = simularEscenario(seg.low, params);
+                        if (Math.abs(simLow.netoCalculado - objetivoNeto) <= tolerance) {
+                            bestBruto = seg.low;
+                            bestSim = simLow;
                             break;
                         }
-                        if (sim.netoCalculado < objetivoNeto) {
-                            low = mid;
-                        } else {
-                            high = mid;
+
+                        let simHigh = simularEscenario(seg.high, params);
+                        let simLowPlus = simularEscenario(seg.low + 0.01, params);
+                        
+                        let minNetInSeg = Math.min(simLowPlus.netoCalculado, simHigh.netoCalculado);
+                        let maxNetInSeg = Math.max(simLowPlus.netoCalculado, simHigh.netoCalculado);
+
+                        if (objetivoNeto >= minNetInSeg - tolerance && objetivoNeto <= maxNetInSeg + tolerance) {
+                            let low = seg.low + 0.01;
+                            let high = seg.high;
+                            let iter = 0;
+                            
+                            while (low <= high && iter < 60) {
+                                let mid = (low + high) / 2;
+                                let sim = simularEscenario(mid, params);
+                                let diff = sim.netoCalculado - objetivoNeto;
+                                
+                                if (Math.abs(diff) <= tolerance) {
+                                    bestBruto = mid;
+                                    bestSim = sim;
+                                    high = mid - 0.001; // Forzamos a buscar un bruto aún menor en este tramo
+                                } else if (diff < 0) {
+                                    low = mid + 0.001;
+                                } else {
+                                    high = mid - 0.001;
+                                }
+                                iter++;
+                            }
+                            if (bestBruto !== null) break; // Al primer tramo que resuelva, paramos.
                         }
-                        brutoFinal = mid;
-                        resultadoCalculo = sim;
-                        iter++;
                     }
+                    
+                    brutoFinal = bestBruto || (objetivoNeto * 3 + minBrutoRequerido);
+                    resultadoCalculo = bestSim || simularEscenario(brutoFinal, params);
                 }
                 
                 document.getElementById('gsNetoTarget').textContent = currencyFormatter.format(objetivoNeto);
