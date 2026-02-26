@@ -704,6 +704,10 @@
 
         // --- FUNCIONES DE CÁLCULO ---
         function calcularDia(bruto, porcentajeIRPF) {
+            // FIX: Redondeamos el bruto a exactamente 2 decimales para evitar derivas flotantes 
+            // que puedan hacer saltar de tramo accidentalmente.
+            bruto = Math.round(bruto * 100) / 100;
+
             const comision = bruto * 0.05; 
             const coste = bruto - comision; 
             
@@ -793,7 +797,9 @@
                 bucket = Math.max(0, bucket);
             }
 
-            if (bucket > 0) {
+            // FIX: Solo sumamos al caché si el bucket tiene un remanente financiero real (> 0.5 céntimos),
+            // protegiendo contra residuos microscópicos.
+            if (bucket > 0.005) {
                 dData[dData.length - 1].cache += bucket;
             }
 
