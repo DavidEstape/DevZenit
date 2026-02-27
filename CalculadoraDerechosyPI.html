@@ -65,7 +65,6 @@
                                 </div>
                                 <div class="flex-grow">
                                     <p class="radio-text text-sm font-medium text-slate-700 transition-colors">Derechos de Imagen</p>
-                                    <p class="text-xs text-slate-500">19% IRPF por defecto</p>
                                 </div>
                                 <div class="radio-check w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 transform scale-50 transition-all">
                                     <i class="fa-solid fa-check text-xs"></i>
@@ -81,7 +80,6 @@
                                 </div>
                                 <div class="flex-grow">
                                     <p class="radio-text text-sm font-medium text-slate-700 transition-colors">Propiedad Intelectual</p>
-                                    <p class="text-xs text-slate-500">15% IRPF por defecto</p>
                                 </div>
                                 <div class="radio-check w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 transform scale-50 transition-all">
                                     <i class="fa-solid fa-check text-xs"></i>
@@ -100,20 +98,34 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <span class="text-slate-500 sm:text-sm">€</span>
                             </div>
-                            <input type="number" id="inputBruto" placeholder="0,00" step="0.01" min="0.01" required
+                            <input type="number" id="inputBruto" placeholder="0,00" step="0.01" min="0.01" required oninput="ocultarResultados()"
                                 class="pl-8 w-full rounded-lg border-2 border-blue-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-blue-50/30 font-medium">
                         </div>
                     </div>
 
                     <div>
-                        <label for="inputIRPF" class="block text-sm font-bold text-slate-700 mb-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">
                             % retención IRPF
                         </label>
-                        <div class="relative">
-                            <input type="number" id="inputIRPF" placeholder="19.0" step="0.1" min="0" value="19" required disabled
+                        
+                        <!-- Vista para Derechos de Imagen (Fijo 19%) -->
+                        <div id="containerIrpfImagen" class="relative">
+                            <input type="number" value="19" disabled
                                 class="pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 transition-colors font-bold bg-slate-100 text-slate-500 cursor-not-allowed">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <span class="text-slate-500 sm:text-sm font-bold">%</span>
+                            </div>
+                        </div>
+
+                        <!-- Vista para Propiedad Intelectual (Selector 7% o 15%) -->
+                        <div id="containerIrpfIntelectual" class="relative hidden">
+                            <select id="selectIRPFIntelectual" onchange="ocultarResultados()"
+                                class="w-full rounded-lg border-2 border-blue-400 pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all bg-white font-bold text-slate-700 appearance-none cursor-pointer hover:bg-slate-50 hover:border-blue-500 shadow-sm">
+                                <option value="7" selected>7% (ingr. anuales ≤ 22.000€)</option>
+                                <option value="15">15% (ingr. anuales &gt; 22.000€)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-caret-down text-blue-600 text-lg"></i>
                             </div>
                         </div>
                     </div>
@@ -198,27 +210,42 @@
         // Variable global para almacenar el último cálculo y usarlo en la exportación
         let ultimoCalculo = null;
 
-        // Cambiar % IRPF automáticamente según el radio button seleccionado
+        // Función para ocultar resultados cuando se modifican los inputs
+        function ocultarResultados() {
+            document.getElementById('resultsDivider').classList.add('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+
+        // Cambiar campo de IRPF según el radio button seleccionado
         function actualizarIRPF() {
             const tipo = document.querySelector('input[name="tipoLiquidacion"]:checked').value;
-            const inputIRPF = document.getElementById('inputIRPF');
+            const containerImagen = document.getElementById('containerIrpfImagen');
+            const containerIntelectual = document.getElementById('containerIrpfIntelectual');
             
             if (tipo === 'imagen') {
-                inputIRPF.value = '19';
+                containerImagen.classList.remove('hidden');
+                containerIntelectual.classList.add('hidden');
             } else if (tipo === 'intelectual') {
-                inputIRPF.value = '15';
+                containerImagen.classList.add('hidden');
+                containerIntelectual.classList.remove('hidden');
             }
 
             // Ocultar resultados al cambiar de tipo para forzar recálculo
-            document.getElementById('resultsDivider').classList.add('hidden');
-            document.getElementById('resultsSection').classList.add('hidden');
+            ocultarResultados();
         }
 
         // Función principal de cálculo
         function calcular() {
             const bruto = parseFloat(document.getElementById('inputBruto').value) || 0;
-            const irpfPorcentaje = parseFloat(document.getElementById('inputIRPF').value) || 0;
             const tipoValor = document.querySelector('input[name="tipoLiquidacion"]:checked').value;
+            
+            // Obtener el % de IRPF dependiendo del tipo seleccionado
+            let irpfPorcentaje = 0;
+            if (tipoValor === 'imagen') {
+                irpfPorcentaje = 19;
+            } else {
+                irpfPorcentaje = parseFloat(document.getElementById('selectIRPFIntelectual').value) || 0;
+            }
             
             const nombreTipo = tipoValor === 'imagen' ? 'Derechos de Imagen' : 'Propiedad Intelectual';
             const iconoTipo = tipoValor === 'imagen' ? 'fa-camera-retro' : 'fa-lightbulb';
@@ -270,6 +297,7 @@
         function copiarPortapapeles() {
             if (!ultimoCalculo) return;
 
+            // ... (Se mantiene el código del portapapeles intacto pero el string usará los valores actualizados)
             let html = `
             <div style="font-family: Arial, Helvetica, sans-serif; color: #334155; max-width: 800px;">
                 <h3 style="color: #1e293b; font-size: 16px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Liquidación de ${ultimoCalculo.tipo}</h3>
