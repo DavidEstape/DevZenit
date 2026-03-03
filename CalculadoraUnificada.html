@@ -1074,7 +1074,7 @@
             const contenedoresTabla = element.querySelectorAll('.rounded-xl.border'); contenedoresTabla.forEach(t => t.classList.remove('rounded-xl', 'border', 'border-slate-200', 'shadow-sm'));
             element.classList.add('px-4', 'pb-4'); btnPDF.classList.add('hidden'); if (btnEmail) btnEmail.classList.add('hidden'); if (btnVolver) btnVolver.classList.add('hidden'); summary.classList.remove('hidden');
 
-            const opt = { margin: [10, 15, 10, 15], filename: 'Liquidacion_Zenit_Completa.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: 'css', avoid: '.break-inside-avoid' } };
+            const opt = { margin: [10, 15, 10, 15], filename: 'Simulación_Liquidacion.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: 'css', avoid: '.break-inside-avoid' } };
             const restaurarVista = () => { btnPDF.classList.remove('hidden'); if (btnEmail) btnEmail.classList.remove('hidden'); if (btnVolver) btnVolver.classList.remove('hidden'); summary.classList.add('hidden'); element.classList.remove('px-4', 'pb-4'); tablasScroll.forEach(t => t.classList.add('overflow-x-auto')); contenedoresTabla.forEach(t => t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm')); };
 
             setTimeout(() => { html2pdf().set(opt).from(element).save().then(restaurarVista).catch((e) => { console.error(e); restaurarVista(); }); }, 500); 
