@@ -59,7 +59,7 @@
                                 <input type="number" id="inputImportePrincipal" placeholder="75,00" step="0.01" min="0" required oninput="ocultarResultados()"
                                     class="pl-8 w-full rounded-lg border-2 border-blue-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-blue-50/30">
                             </div>
-                            <p id="errorImporteBruto" class="text-red-500 text-xs mt-1 hidden">El importe mínimo es 75€.</p>
+                            <p id="errorImporteBruto" class="text-red-500 text-xs mt-1 hidden"></p>
                             <p id="warningImporteNeto" class="text-amber-500 text-xs mt-1 hidden">El neto es inferior al mínimo legal. Se ha ajustado.</p>
                         </div>
 
@@ -81,13 +81,13 @@
                                 % retención IRPF (General)
                             </label>
                             <div class="relative">
-                                <input type="number" id="inputIRPF" placeholder="2,00" step="0.1" min="2" value="2" required oninput="ocultarResultados()"
+                                <input type="number" id="inputIRPF" placeholder="2,00" step="0.1" required oninput="ocultarResultados()"
                                     class="pr-8 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <span class="text-slate-500 sm:text-sm">%</span>
                                 </div>
                             </div>
-                            <p id="errorIRPF" class="text-red-500 text-xs mt-1 hidden">El IRPF mínimo es 2%.</p>
+                            <p id="errorIRPF" class="text-red-500 text-xs mt-1 hidden"></p>
                         </div>
                     </div>
 
@@ -164,10 +164,7 @@
                                 <div class="relative flex-1 w-full">
                                     <select id="selectDieta" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate">
                                         <option value="">Seleccionar tipo de dieta...</option>
-                                        <option value="28.0736">Territorio español (28,07€)</option>
-                                        <option value="50.6105">Fuera de territorio español (50,61€)</option>
-                                        <option value="56.1473">Pernocta territorio español (56,15€)</option>
-                                        <option value="96.1578">Pernocta fuera territorio español (96,16€)</option>
+                                        <!-- Inyectado vía JS -->
                                     </select>
                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                         <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
@@ -195,10 +192,6 @@
                             <ul id="listaDietasUI" class="space-y-1 mb-2">
                                 <li class="text-sm text-slate-400 italic py-2 text-center">Ninguna dieta añadida</li>
                             </ul>
-                            <div id="dietasInfoNota" class="hidden mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500 italic flex items-start gap-2">
-                                <i class="fa-solid fa-circle-info mt-0.5 text-blue-400"></i>
-                                <p>Las dietas se aplicarán a los días por orden secuencial. Modifica el orden usando las flechas si lo deseas.</p>
-                            </div>
                         </div>
                     </div>
 
@@ -214,18 +207,7 @@
                                 <div class="relative flex-1 w-full">
                                     <select id="selectMaterial" onchange="toggleCustomMaterialFields()" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate">
                                         <option value="">Seleccionar material...</option>
-                                        <option value="105.2632">Altavoces (105,26€)</option>
-                                        <option value="73.6842">Bajos y complementos (73,68€)</option>
-                                        <option value="105.2632">Batería acústica (105,26€)</option>
-                                        <option value="105.2632">Batería eléctrica (105,26€)</option>
-                                        <option value="5.2632">Cables (5,26€)</option>
-                                        <option value="84.2105">Clarinete (84,21€)</option>
-                                        <option value="105.2632">Contrabajo (105,26€)</option>
-                                        <option value="73.6842">Guitarra acústica (73,68€)</option>
-                                        <option value="63.1579">Guitarra clásica (63,16€)</option>
-                                        <option value="105.2632">Guitarra eléctrica (105,26€)</option>                                 
-                                        <option value="52.6316">Micrófono (52,63€)</option>
-                                        <option value="63.1579">Ordenador (63,16€)</option>
+                                        <!-- Inyectado vía JS -->
                                         <option value="custom">Otros (Especificar...)</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -249,7 +231,7 @@
 
                         <div id="customMaterialFields" class="hidden flex-col md:flex-row gap-3 px-4 md:px-5 py-4 w-full items-center bg-blue-50/40 border-b border-blue-100">
                             <div class="flex-grow w-full">
-                                <input type="text" id="inputCustomName" placeholder="Descripción: Ej: Fender Stratocaster"
+                                <input type="text" id="inputCustomName" placeholder="Descripción: Ej: Violoncelo"
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
@@ -299,7 +281,7 @@
                                 </div>
                                 
                                 <div class="w-full sm:w-1/3">
-                                    <input type="text" value="19% Retención IRPF" disabled title="Retención IRPF a aplicar sobre Derechos de Imagen" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-100 text-slate-600 cursor-not-allowed font-semibold text-center shadow-inner">
+                                    <input type="text" id="inputImagenIrpfLabel" disabled title="Retención IRPF a aplicar sobre Derechos de Imagen" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-100 text-slate-600 cursor-not-allowed font-semibold text-center shadow-inner">
                                 </div>
                             </div>
 
@@ -319,8 +301,7 @@
                                     
                                     <div class="relative w-full sm:w-1/3">
                                         <select id="selectIRPFPI" onchange="ocultarResultados()" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate font-semibold text-slate-700 shadow-sm">
-                                            <option value="7">7% Retención IRPF *</option>
-                                            <option value="15">15% Retención IRPF *</option>
+                                            <!-- Inyectado vía JS -->
                                         </select>
                                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                             <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
@@ -330,7 +311,7 @@
                                 
                                 <!-- Fila exclusiva para el disclaimer del IRPF -->
                                 <div class="flex justify-end w-full mt-2 px-1">
-                                    <p class="text-[11px] text-slate-500 text-right leading-tight sm:max-w-[70%]"><span class="text-amber-500 font-bold">*</span> Según las rentas en este concepto sean superiores o iguales a 22.000€.</p>
+                                    <p id="disclaimerPIText" class="text-[11px] text-slate-500 text-right leading-tight sm:max-w-[70%]"></p>
                                 </div>
                             </div>
                         </div>
@@ -426,7 +407,7 @@
                                 <div class="py-3 px-4 font-semibold text-right">Importe</div>
                                 <div class="py-3 px-4 font-semibold text-right">Comisión</div>
                                 <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
-                                <div class="py-3 px-4 font-semibold text-right">7% IRPF</div>
+                                <div class="py-3 px-4 font-semibold text-right" id="taimanIRPFHeader">7% IRPF</div>
                                 <div class="py-3 px-4 font-semibold text-right">A liquidar</div>
                             </div>
                             
@@ -457,6 +438,56 @@
     </div>
 
     <script>
+        // =========================================================================
+        // CONFIGURACIÓN GLOBAL DE LA APLICACIÓN (Diccionario Centralizado)
+        // =========================================================================
+        const APP_CONFIG = {
+            tasas: {
+                comisionAgencia: 0.05,
+                comisionTaiman: 0.05,
+                irpfTaiman: 0.07,
+                irpfImagen: 19, // Expresado en %
+                irpfPI: { bajo: 7, alto: 15 }, // Expresado en %
+                irpfGeneralMinimo: 2, // Expresado en %
+                kilometraje: 0.2737
+            },
+            limites: {
+                cacheMinimoDiario: 75.00,
+                umbralPI: 22000
+            },
+            dietas: [
+                { id: 'esp', nombre: 'Territorio español', precio: 28.0736 },
+                { id: 'ext', nombre: 'Fuera de territorio español', precio: 50.6105 },
+                { id: 'esp_pernocta', nombre: 'Pernocta territorio español', precio: 56.1473 },
+                { id: 'ext_pernocta', nombre: 'Pernocta fuera territorio español', precio: 96.1578 }
+            ],
+            materiales: [
+                { id: 'altavoces', nombre: 'Altavoces', precio: 105.2632 },
+                { id: 'bajos', nombre: 'Bajos y complementos', precio: 73.6842 },
+                { id: 'bat_acustica', nombre: 'Batería acústica', precio: 105.2632 },
+                { id: 'bat_electrica', nombre: 'Batería eléctrica', precio: 105.2632 },
+                { id: 'cables', nombre: 'Cables', precio: 5.2632 },
+                { id: 'clarinete', nombre: 'Clarinete', precio: 84.2105 },
+                { id: 'contrabajo', nombre: 'Contrabajo', precio: 105.2632 },
+                { id: 'guit_acustica', nombre: 'Guitarra acústica', precio: 73.6842 },
+                { id: 'guit_clasica', nombre: 'Guitarra clásica', precio: 63.1579 },
+                { id: 'guit_electrica', nombre: 'Guitarra eléctrica', precio: 105.2632 },
+                { id: 'microfono', nombre: 'Micrófono', precio: 52.6316 },
+                { id: 'ordenador', nombre: 'Ordenador', precio: 63.1579 }
+            ],
+            ssTramos: [
+                { max: 75.00, cuota: 21.00 },
+                { max: 477.25, calc: (coste) => { const i1 = coste * 0.25009; return i1 + ((coste - i1) * 0.0655) + 2.5; } },
+                { max: 729.42, cuota: 138.86 },
+                { max: 1250.26, cuota: 179.49 },
+                { max: 2023.02, cuota: 221.41 },
+                { max: 2287.30, cuota: 288.52 },
+                { max: 2732.66, cuota: 294.67 },
+                { max: 3158.85, cuota: 300.77 },
+                { max: Infinity, cuota: 310.27 }
+            ]
+        };
+
         // Formateador de moneda para euros garantizando separador de miles (ej: 3.000,00 €)
         function formatCurrency(num) {
             if (num === null || isNaN(num)) return "0,00 €";
@@ -471,6 +502,54 @@
         let calcMode = 'bruto';
         let listaMaterial = [];
         let listaDietas = [];
+
+        // Inicializador automático para inyectar configuración en HTML
+        function initApp() {
+            // Dietas
+            const selectDieta = document.getElementById('selectDieta');
+            APP_CONFIG.dietas.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.precio;
+                opt.textContent = `${d.nombre} (${formatCurrency(d.precio)})`;
+                selectDieta.appendChild(opt);
+            });
+
+            // Materiales (se insertan antes del "Otros")
+            const selectMat = document.getElementById('selectMaterial');
+            const optionOtros = selectMat.querySelector('option[value="custom"]');
+            APP_CONFIG.materiales.forEach(mat => {
+                const opt = document.createElement('option');
+                opt.value = mat.precio;
+                opt.textContent = `${mat.nombre} (${formatCurrency(mat.precio)})`;
+                selectMat.insertBefore(opt, optionOtros);
+            });
+
+            // Configurar Textos e Inputs estáticos desde APP_CONFIG
+            document.getElementById('inputIRPF').min = APP_CONFIG.tasas.irpfGeneralMinimo;
+            document.getElementById('inputIRPF').value = APP_CONFIG.tasas.irpfGeneralMinimo;
+            document.getElementById('errorIRPF').textContent = `El IRPF mínimo es ${APP_CONFIG.tasas.irpfGeneralMinimo}%.`;
+            document.getElementById('errorImporteBruto').textContent = `El importe mínimo es ${APP_CONFIG.limites.cacheMinimoDiario}€.`;
+            
+            document.getElementById('inputImagenIrpfLabel').value = `${APP_CONFIG.tasas.irpfImagen}% Retención IRPF`;
+            document.getElementById('disclaimerPIText').innerHTML = `<span class="text-amber-500 font-bold">*</span> Según las rentas en este concepto sean superiores o iguales a ${APP_CONFIG.limites.umbralPI.toLocaleString('es-ES')}€.`;
+            document.getElementById('taimanIRPFHeader').textContent = `${APP_CONFIG.tasas.irpfTaiman * 100}% IRPF`;
+
+            // IRPF P.I. Select
+            const selectPI = document.getElementById('selectIRPFPI');
+            const optBajo = document.createElement('option');
+            optBajo.value = APP_CONFIG.tasas.irpfPI.bajo;
+            optBajo.textContent = `${APP_CONFIG.tasas.irpfPI.bajo}% Retención IRPF *`;
+            selectPI.appendChild(optBajo);
+            
+            const optAlto = document.createElement('option');
+            optAlto.value = APP_CONFIG.tasas.irpfPI.alto;
+            optAlto.textContent = `${APP_CONFIG.tasas.irpfPI.alto}% Retención IRPF *`;
+            selectPI.appendChild(optAlto);
+        }
+
+        // Llamar inicializador al cargar
+        document.addEventListener('DOMContentLoaded', initApp);
+
 
         function ocultarResultados() {
             const resultsSection = document.getElementById('resultsSection');
@@ -638,19 +717,16 @@
 
         function calcularDia(bruto, porcentajeIRPF) {
             bruto = round2(bruto);
-            const comision = round2(bruto * 0.05); 
+            const comision = round2(bruto * APP_CONFIG.tasas.comisionAgencia); 
             const coste = round2(bruto - comision); 
             
             let segSocial = 0;
-            if (bruto <= 75) segSocial = 21;
-            else if (bruto <= 477.25) { const i1 = coste * 0.25009; segSocial = i1 + ((coste - i1) * 0.0655) + 2.5; }
-            else if (bruto <= 729.42) segSocial = 138.86;
-            else if (bruto <= 1250.26) segSocial = 179.49;
-            else if (bruto <= 2023.02) segSocial = 221.41;
-            else if (bruto <= 2287.30) segSocial = 288.52;
-            else if (bruto <= 2732.66) segSocial = 294.67;
-            else if (bruto <= 3158.85) segSocial = 300.77;
-            else segSocial = 310.27;
+            for (const tramo of APP_CONFIG.ssTramos) {
+                if (bruto <= tramo.max) {
+                    segSocial = tramo.calc ? tramo.calc(coste) : tramo.cuota;
+                    break;
+                }
+            }
 
             segSocial = round2(segSocial);
             const baseLiq = round2(coste - segSocial); 
@@ -661,12 +737,14 @@
 
         function simularEscenario(importeBrutoPrueba, params) {
             importeBrutoPrueba = round2(importeBrutoPrueba);
-            let bucket = round2(importeBrutoPrueba - (params.dias * 75));
-            let dData = Array.from({length: params.dias}, (_, i) => ({ dia: i+1, cache: 75, km: 0, dieta: 0, alquiler: 0 }));
+            let bucket = round2(importeBrutoPrueba - (params.dias * APP_CONFIG.limites.cacheMinimoDiario));
+            let dData = Array.from({length: params.dias}, (_, i) => ({ dia: i+1, cache: APP_CONFIG.limites.cacheMinimoDiario, km: 0, dieta: 0, alquiler: 0 }));
 
             // 1. Kilometraje
             if (params.km > 0) {
-                let reqKm = params.km * 0.2737, availableKm = Math.min(round2(reqKm * params.dias), bucket), perDayKm = round2(availableKm / params.dias); 
+                let reqKm = params.km * APP_CONFIG.tasas.kilometraje;
+                let availableKm = Math.min(round2(reqKm * params.dias), bucket);
+                let perDayKm = round2(availableKm / params.dias); 
                 for (let i = 0; i < params.dias; i++) {
                     let alloc = i === params.dias - 1 ? round2(availableKm - (perDayKm * (params.dias - 1))) : perDayKm;
                     dData[i].km = alloc; bucket = round2(bucket - alloc);
@@ -711,7 +789,7 @@
                         let alloc = Math.min(round2(d.importe), bucket);
                         bucket = round2(bucket - alloc);
 
-                        const c = round2(alloc * 0.05);
+                        const c = round2(alloc * APP_CONFIG.tasas.comisionAgencia);
                         const bl = round2(alloc - c);
                         const irpf_val = round2(bl * (d.irpf / 100));
                         const neto = round2(bl - irpf_val);
@@ -753,7 +831,8 @@
                 let dayObj = { cache: res, dataOriginal: dData[i] };
                 ['km', 'dieta', 'alquiler'].forEach(k => {
                     if (dData[i][k] > 0) {
-                        const c = round2(dData[i][k] * 0.05), bl = round2(dData[i][k] - c);
+                        const c = round2(dData[i][k] * APP_CONFIG.tasas.comisionAgencia); 
+                        const bl = round2(dData[i][k] - c);
                         totalsZenit.bruto = round2(totalsZenit.bruto + dData[i][k]); 
                         totalsZenit.comision = round2(totalsZenit.comision + c); 
                         totalsZenit.coste = round2(totalsZenit.coste + bl); 
@@ -765,7 +844,8 @@
 
             let gastosRes = null;
             if (gastosJustificadosSim > 0) {
-                const c = round2(gastosJustificadosSim * 0.05), bl = round2(gastosJustificadosSim - c);
+                const c = round2(gastosJustificadosSim * APP_CONFIG.tasas.comisionAgencia); 
+                const bl = round2(gastosJustificadosSim - c);
                 totalsZenit.bruto = round2(totalsZenit.bruto + gastosJustificadosSim); 
                 totalsZenit.comision = round2(totalsZenit.comision + c); 
                 totalsZenit.coste = round2(totalsZenit.coste + bl); 
@@ -779,7 +859,7 @@
             // Extraer la Base Liquidable estricta de Zenit de cada día para consolidar Taiman
             dData.forEach(d => {
                 if (d.alquiler > 0) {
-                    const c = round2(d.alquiler * 0.05);
+                    const c = round2(d.alquiler * APP_CONFIG.tasas.comisionAgencia);
                     const bl = round2(d.alquiler - c);
                     taimanImporteBase = round2(taimanImporteBase + bl);
                 }
@@ -787,9 +867,9 @@
 
             if (taimanImporteBase > 0) {
                 const importe = taimanImporteBase; 
-                const comision = round2(importe * 0.05);
+                const comision = round2(importe * APP_CONFIG.tasas.comisionTaiman);
                 const baseLiq = round2(importe - comision);
-                const irpf = round2(baseLiq * 0.07);
+                const irpf = round2(baseLiq * APP_CONFIG.tasas.irpfTaiman);
                 taimanNeto = round2(baseLiq - irpf);
                 taimanRes = { importe, comision, baseLiq, irpf, aLiquidar: taimanNeto };
             }
@@ -800,7 +880,7 @@
         function calcular() {
             let inputPrincipal = parseFloat(document.getElementById('inputImportePrincipal').value) || 0;
             let inputDias = Math.max(1, parseInt(document.getElementById('inputDias').value) || 1); 
-            let inputIRPF = Math.max(2, parseFloat(document.getElementById('inputIRPF').value) || 2);
+            let inputIRPF = Math.max(APP_CONFIG.tasas.irpfGeneralMinimo, parseFloat(document.getElementById('inputIRPF').value) || APP_CONFIG.tasas.irpfGeneralMinimo);
             let inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
             let inputGastos = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
             let totalAlquiler = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
@@ -808,21 +888,22 @@
             // Extracción Nuevos Derechos separados
             let importeImagen = parseFloat(document.getElementById('inputImagenImporte').value) || 0;
             let importePI = parseFloat(document.getElementById('inputPIImporte').value) || 0;
-            let irpfPI = parseFloat(document.getElementById('selectIRPFPI').value) || 7;
+            let irpfPI = parseFloat(document.getElementById('selectIRPFPI').value) || APP_CONFIG.tasas.irpfPI.bajo;
 
             let arrayDerechos = [];
-            if (importeImagen > 0) arrayDerechos.push({ tipo: 'imagen', nombre: 'Derechos de Imagen', importe: importeImagen, irpf: 19 });
+            if (importeImagen > 0) arrayDerechos.push({ tipo: 'imagen', nombre: 'Derechos de Imagen', importe: importeImagen, irpf: APP_CONFIG.tasas.irpfImagen });
             if (importePI > 0) arrayDerechos.push({ tipo: 'pi', nombre: 'Propiedad Intelectual', importe: importePI, irpf: irpfPI });
 
-            document.getElementById('inputDias').value = inputDias; document.getElementById('inputIRPF').value = inputIRPF;
+            document.getElementById('inputDias').value = inputDias; 
+            document.getElementById('inputIRPF').value = inputIRPF;
             document.getElementById('errorImporteBruto').classList.add('hidden'); document.getElementById('warningImporteNeto').classList.add('hidden');
 
             const params = { dias: inputDias, irpf: inputIRPF, km: inputKilometraje, gastos: inputGastos, totalAlquiler: totalAlquiler, listaDietas: listaDietas, derechos: arrayDerechos };
-            const minBrutoRequerido = inputDias * 75;
+            const minBrutoRequerido = inputDias * APP_CONFIG.limites.cacheMinimoDiario;
             
             function getReqExtras(p) {
                 let rExtras = 0;
-                if (p.km > 0) rExtras = round2(rExtras + round2(p.km * 0.2737 * p.dias));
+                if (p.km > 0) rExtras = round2(rExtras + round2(p.km * APP_CONFIG.tasas.kilometraje * p.dias));
                 if (p.listaDietas && p.listaDietas.length > 0) {
                     let dReq = []; p.listaDietas.forEach(d => { for(let i = 0; i < d.days; i++) dReq.push(round2(d.price)); });
                     rExtras = round2(rExtras + dReq.slice(0, p.dias).reduce((a, b) => round2(a + b), 0));
@@ -838,20 +919,22 @@
             const baseBruto = round2(minBrutoRequerido + getReqExtras(params));
             let brutoFinal = 0, resultadoCalculo = null;
 
+            // Extraer solo los topes para el optimizador (cambiar Infinity a 500000 para el algoritmo)
+            const thresholdsCache = APP_CONFIG.ssTramos.map(t => t.max === Infinity ? 500000.00 : t.max);
+
             if (calcMode === 'bruto') {
                 if (inputPrincipal < minBrutoRequerido && document.getElementById('inputImportePrincipal').value !== "") {
                     inputPrincipal = minBrutoRequerido; document.getElementById('inputImportePrincipal').value = minBrutoRequerido; 
-                    document.getElementById('errorImporteBruto').textContent = `Mínimo para ${inputDias} día(s) es ${minBrutoRequerido}€.`;
+                    document.getElementById('errorImporteBruto').textContent = `El importe mínimo para ${inputDias} día(s) es ${minBrutoRequerido}€.`;
                     document.getElementById('errorImporteBruto').classList.remove('hidden'); 
                 }
                 brutoFinal = inputPrincipal; resultadoCalculo = simularEscenario(brutoFinal, params);
                 document.getElementById('goalSeekBanner').classList.add('hidden');
 
                 // Optimización
-                const thresholdsCache = [75.00, 477.25, 729.42, 1250.26, 2023.02, 2287.30, 2732.66, 3158.85, 500000.00];
                 let possibleOptimizations = [];
                 for (let i = 0; i < thresholdsCache.length; i++) {
-                    let peakGross = round2(baseBruto + (thresholdsCache[i] - 75));
+                    let peakGross = round2(baseBruto + (thresholdsCache[i] - APP_CONFIG.limites.cacheMinimoDiario));
                     if (peakGross <= brutoFinal - 0.01) {
                         let simPeak = simularEscenario(peakGross, params);
                         if (simPeak.netoCalculado >= resultadoCalculo.netoCalculado) possibleOptimizations.push({ bruto: peakGross, neto: simPeak.netoCalculado });
@@ -872,10 +955,9 @@
                     if (targetCents < simMinimaCents) document.getElementById('warningImporteNeto').classList.remove('hidden');
                     brutoFinal = minBrutoRequerido; resultadoCalculo = simMinima;
                 } else {
-                    const thresholdsCache = [75.00, 477.25, 729.42, 1250.26, 2023.02, 2287.30, 2732.66, 3158.85, 500000.00];
                     let intervals = [], startPoint = minBrutoRequerido;
                     for (let i = 0; i < thresholdsCache.length; i++) {
-                        let endPoint = round2(baseBruto + (thresholdsCache[i] - 75));
+                        let endPoint = round2(baseBruto + (thresholdsCache[i] - APP_CONFIG.limites.cacheMinimoDiario));
                         if (endPoint >= startPoint) { intervals.push({ low: startPoint, high: endPoint }); startPoint = round2(endPoint + 0.01); }
                     }
 
@@ -951,9 +1033,9 @@
                     </div>`;
 
                 html += trGen('fa-microphone', 'Caché', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
-                if (resDia.dataOriginal.km > 0) html += trGen('fa-car', 'Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*0.05, resDia.dataOriginal.km*0.95, '-', '-', resDia.dataOriginal.km*0.95);
-                if (resDia.dataOriginal.dieta > 0) html += trGen('fa-utensils', 'Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*0.05, resDia.dataOriginal.dieta*0.95, '-', '-', resDia.dataOriginal.dieta*0.95);
-                if (resDia.dataOriginal.alquiler > 0) html += trGen('fa-guitar', 'Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*0.05, resDia.dataOriginal.alquiler*0.95, '-', '-', 0, 'via Taiman');
+                if (resDia.dataOriginal.km > 0) html += trGen('fa-car', 'Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.dieta > 0) html += trGen('fa-utensils', 'Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.alquiler > 0) html += trGen('fa-guitar', 'Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
                 
                 dayBlock.innerHTML = html + `</div>`;
                 multiDayBody.appendChild(dayBlock);
@@ -1033,9 +1115,9 @@
                 };
 
                 addRow('Caché', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
-                if (resDia.dataOriginal.km > 0) addRow('Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*0.05, resDia.dataOriginal.km*0.95, '-', '-', resDia.dataOriginal.km*0.95);
-                if (resDia.dataOriginal.dieta > 0) addRow('Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*0.05, resDia.dataOriginal.dieta*0.95, '-', '-', resDia.dataOriginal.dieta*0.95);
-                if (resDia.dataOriginal.alquiler > 0) addRow('Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*0.05, resDia.dataOriginal.alquiler*0.95, '-', '-', 0, 'via Taiman');
+                if (resDia.dataOriginal.km > 0) addRow('Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.dieta > 0) addRow('Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.alquiler > 0) addRow('Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
             });
 
             if (globalSimulationResult.gastosRes) {
@@ -1054,7 +1136,7 @@
 
             if (globalSimulationResult.taimanRes) {
                 const tr = globalSimulationResult.taimanRes;
-                html += `<h3 style="color: #1e293b; font-size: 16px; margin-top: 20px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglose Liquidación Taiman</h3><table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;"><thead><tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;"><th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Concepto</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Importe</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Comisión</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Base liquidable</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">7% IRPF</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">A liquidar</th></tr></thead><tbody><tr style="background-color: #faf5ff;"><td style="padding: 10px 8px; font-weight: bold; color: #9333ea; text-transform: uppercase;">Liquidación Taiman</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.importe)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.comision)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.baseLiq)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.irpf)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #7e22ce; font-size: 14px;">${formatCurrency(tr.aLiquidar)}</td></tr></tbody></table>`;
+                html += `<h3 style="color: #1e293b; font-size: 16px; margin-top: 20px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglose Liquidación Taiman</h3><table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;"><thead><tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;"><th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Concepto</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Importe</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Comisión</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Base liquidable</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">${APP_CONFIG.tasas.irpfTaiman * 100}% IRPF</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">A liquidar</th></tr></thead><tbody><tr style="background-color: #faf5ff;"><td style="padding: 10px 8px; font-weight: bold; color: #9333ea; text-transform: uppercase;">Liquidación Taiman</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.importe)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.comision)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.baseLiq)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.irpf)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #7e22ce; font-size: 14px;">${formatCurrency(tr.aLiquidar)}</td></tr></tbody></table>`;
             }
 
             html += `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center;">
