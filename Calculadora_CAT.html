@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Liquidación Unificada</title>
+    <title>Calculadora de Liquidació Unificada</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Ocultar flechas de inputs numéricos */
+        /* Ocultar fletxes d'inputs numèrics */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -27,9 +27,9 @@
         <div class="bg-blue-600 px-8 py-6 text-white">
             <h1 class="text-2xl font-bold flex items-center gap-2">
                 <i class="fa-solid fa-calculator"></i>
-                Calculadora de Simulación Liquidación
+                Calculadora de Simulació de Liquidació
             </h1>
-            <p class="text-blue-100 text-sm mt-1">Introduce los datos iniciales para calcular los importes de liquidación</p>
+            <p class="text-blue-100 text-sm mt-1">Introdueix les dades inicials per calcular els imports de liquidació</p>
         </div>
 
         <div class="p-8">
@@ -39,19 +39,19 @@
                     <div class="flex justify-center mb-8">
                         <div class="bg-slate-100 p-1 rounded-lg inline-flex relative">
                             <button type="button" id="btnModeBruto" onclick="setMode('bruto')" class="px-5 py-2.5 rounded-md bg-white shadow-sm text-sm font-bold text-slate-800 transition-all z-10">
-                                <i class="fa-solid fa-arrow-down-wide-short mr-2 text-blue-600"></i>De Bruto a Neto
+                                <i class="fa-solid fa-arrow-down-wide-short mr-2 text-blue-600"></i>De Brut a Net
                             </button>
                             <button type="button" id="btnModeNeto" onclick="setMode('neto')" class="px-5 py-2.5 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 transition-all z-10">
-                                <i class="fa-solid fa-bullseye mr-2"></i>Objetivo Neto
+                                <i class="fa-solid fa-bullseye mr-2"></i>Objectiu Net
                             </button>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 1: DATOS PRINCIPALES -->
+                    <!-- BLOC 1: DADES PRINCIPALS -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div>
                             <label id="lblImportePrincipal" for="inputImportePrincipal" class="block text-sm font-bold text-blue-600 mb-2 transition-colors">
-                                Importe venta bruto
+                                Import venda brut
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -61,12 +61,12 @@
                                     class="pl-8 w-full rounded-lg border-2 border-blue-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-blue-50/30">
                             </div>
                             <p id="errorImporteBruto" class="text-red-500 text-xs mt-1 hidden"></p>
-                            <p id="warningImporteNeto" class="text-amber-500 text-xs mt-1 hidden">El neto es inferior al mínimo legal. Se ha ajustado.</p>
+                            <p id="warningImporteNeto" class="text-amber-500 text-xs mt-1 hidden">El net és inferior al mínim legal. S'ha ajustat.</p>
                         </div>
 
                         <div>
                             <label for="inputDias" class="block text-sm font-medium text-slate-700 mb-2">
-                                Nº días
+                                Nº dies
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -79,7 +79,7 @@
 
                         <div>
                             <label for="inputIRPF" class="block text-sm font-medium text-slate-700 mb-2">
-                                % retención IRPF (General)
+                                % retenció IRPF (General)
                             </label>
                             <div class="relative">
                                 <input type="number" id="inputIRPF" placeholder="2,00" step="0.1" required oninput="ocultarResultados()"
@@ -92,11 +92,11 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE 2: GASTOS Y KILOMETRAJE -->
+                    <!-- BLOC 2: DESPESES I QUILOMETRATGE -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 mb-6">
                         <div class="md:col-span-3">
                             <label for="inputKilometraje" class="block text-sm font-medium text-slate-700 mb-2 truncate">
-                                Kilometraje (Diario)
+                                Quilometratge (Diari)
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -125,7 +125,7 @@
 
                         <div class="md:col-span-2">
                             <label for="inputCpDestino" class="block text-sm font-medium text-slate-700 mb-2 truncate">
-                                CP Destino
+                                CP Destí
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -138,7 +138,7 @@
 
                         <div class="md:col-span-5">
                             <label for="inputGastosJustificados" class="block text-sm font-medium text-slate-700 mb-2 truncate">
-                                Gastos justificados
+                                Despeses justificades
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -153,73 +153,73 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE 3: DIETAS -->
+                    <!-- BLOC 3: DIETES -->
                     <div class="mb-6 bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-300">
                         <div class="p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4 border-b border-slate-100">
                             <div class="flex items-center gap-2 w-full lg:w-56 flex-shrink-0">
                                 <i class="fa-solid fa-utensils text-slate-400"></i>
-                                <h3 class="text-sm font-bold text-slate-700">Añadir dietas</h3>
+                                <h3 class="text-sm font-bold text-slate-700">Afegir dietes</h3>
                             </div>
 
                             <div class="flex-grow flex flex-col sm:flex-row items-center gap-3 w-full">
                                 <div class="relative flex-1 w-full">
                                     <select id="selectDieta" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate">
-                                        <option value="">Seleccionar tipo de dieta...</option>
-                                        <!-- Inyectado vía JS -->
+                                        <option value="">Seleccionar tipus de dieta...</option>
+                                        <!-- Injectat via JS -->
                                     </select>
                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                         <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
                                     </div>
                                 </div>
                                 <div class="flex gap-2 w-full sm:w-auto flex-shrink-0">
-                                    <input type="number" id="inputDietaQty" value="1" min="1" step="1" title="Nº Días"
+                                    <input type="number" id="inputDietaQty" value="1" min="1" step="1" title="Nº Dies"
                                         class="w-16 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
                                     <button type="button" onclick="agregarDieta()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm flex-shrink-0">
-                                        <i class="fa-solid fa-plus text-xs"></i> Añadir
+                                        <i class="fa-solid fa-plus text-xs"></i> Afegir
                                     </button>
                                 </div>
                             </div>
 
                             <button type="button" onclick="toggleDietas()" class="flex items-center gap-3 text-slate-500 hover:text-slate-700 transition-colors focus:outline-none w-full lg:w-36 flex-shrink-0 justify-end mt-2 lg:mt-0">
-                                <span id="dietasHeaderTotal" class="text-xs font-bold text-blue-600 hidden">0 días</span>
+                                <span id="dietasHeaderTotal" class="text-xs font-bold text-blue-600 hidden">0 dies</span>
                                 <i id="dietasChevron" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
                             </button>
                         </div>
 
                         <div id="dietasContent" class="hidden px-5 pb-5 pt-3 bg-slate-50 rounded-b-xl">
                             <p id="errorDietasMax" class="text-red-500 text-xs pb-3 hidden font-medium">
-                                <i class="fa-solid fa-circle-exclamation mr-1"></i> No puedes añadir más dietas que el número total de días de liquidación.
+                                <i class="fa-solid fa-circle-exclamation mr-1"></i> No pots afegir més dietes que el nombre total de dies de liquidació.
                             </p>
                             <ul id="listaDietasUI" class="space-y-1 mb-2">
-                                <li class="text-sm text-slate-400 italic py-2 text-center">Ninguna dieta añadida</li>
+                                <li class="text-sm text-slate-400 italic py-2 text-center">Cap dieta afegida</li>
                             </ul>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 4: MATERIAL ALQUILER -->
+                    <!-- BLOC 4: MATERIAL LLOGUER -->
                     <div class="mb-6 bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-300">
                         <div class="p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4 border-b border-slate-100">
                             <div class="flex items-center gap-2 w-full lg:w-56 flex-shrink-0">
                                 <i class="fa-solid fa-guitar text-slate-400"></i>
-                                <h3 class="text-sm font-bold text-slate-700 leading-tight">Material de alquiler<br><span class="text-xs font-normal text-slate-500">(via Taiman)</span></h3>
+                                <h3 class="text-sm font-bold text-slate-700 leading-tight">Material de lloguer<br><span class="text-xs font-normal text-slate-500">(via Taiman)</span></h3>
                             </div>
 
                             <div class="flex-grow flex flex-col sm:flex-row items-center gap-3 w-full">
                                 <div class="relative flex-1 w-full">
                                     <select id="selectMaterial" onchange="toggleCustomMaterialFields()" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate">
                                         <option value="">Seleccionar material...</option>
-                                        <!-- Inyectado vía JS -->
-                                        <option value="custom">Otros (Especificar...)</option>
+                                        <!-- Injectat via JS -->
+                                        <option value="custom">Altres (Especificar...)</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                         <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
                                     </div>
                                 </div>
                                 <div class="flex gap-2 w-full sm:w-auto flex-shrink-0">
-                                    <input type="number" id="inputMaterialQty" value="1" min="1" step="1" title="Num. Instrumentos/día"
+                                    <input type="number" id="inputMaterialQty" value="1" min="1" step="1" title="Num. Instruments/dia"
                                         class="w-16 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
                                     <button type="button" onclick="agregarMaterial()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm flex-shrink-0">
-                                        <i class="fa-solid fa-plus text-xs"></i> Añadir
+                                        <i class="fa-solid fa-plus text-xs"></i> Afegir
                                     </button>
                                 </div>
                             </div>
@@ -232,12 +232,12 @@
 
                         <div id="customMaterialFields" class="hidden flex-col md:flex-row gap-3 px-4 md:px-5 py-4 w-full items-center bg-blue-50/40 border-b border-blue-100">
                             <div class="flex-grow w-full">
-                                <input type="text" id="inputCustomName" placeholder="Descripción: Ej: Violoncelo"
+                                <input type="text" id="inputCustomName" placeholder="Descripció: Ex: Violoncel"
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                             <div class="w-full md:w-32 relative">
-                                <input type="number" id="inputCustomPrice" placeholder="Precio/día (€)" min="0" step="0.01"
+                                <input type="number" id="inputCustomPrice" placeholder="Preu/dia (€)" min="0" step="0.01"
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
                             </div>
@@ -248,61 +248,61 @@
 
                         <div id="materialContent" class="hidden px-5 pb-5 pt-3 bg-slate-50 rounded-b-xl">
                             <p id="errorCustomMaterial" class="text-red-500 text-xs pb-3 hidden font-medium">
-                                <i class="fa-solid fa-circle-exclamation mr-1"></i> Por favor, introduce descripción y precio mayor a 0.
+                                <i class="fa-solid fa-circle-exclamation mr-1"></i> Si us plau, introdueix una descripció i un preu major a 0.
                             </p>
                             <ul id="listaMaterialUI" class="space-y-1 mb-2">
-                                <li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>
+                                <li class="text-sm text-slate-400 italic py-2 text-center">Cap material afegit</li>
                             </ul>
                             <div class="flex justify-between items-center border-t border-slate-200 pt-3 mt-2">
-                                <span class="text-sm font-medium text-slate-600">Total alquiler diario:</span>
+                                <span class="text-sm font-medium text-slate-600">Total lloguer diari:</span>
                                 <span class="text-lg font-bold text-slate-900" id="totalMaterialUI">0,00 €</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- BLOQUE 5: DERECHOS DE IMAGEN Y P.I. -->
+                    <!-- BLOC 5: DRETS D'IMATGE I P.I. -->
                     <div class="mb-10 bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-300">
                         <div class="p-4 md:p-5 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50 rounded-t-xl">
                             <i class="fa-solid fa-copyright text-slate-400"></i>
-                            <h3 class="text-sm font-bold text-slate-700 leading-tight">Derechos de Imagen y Propiedad Intelectual</h3>
+                            <h3 class="text-sm font-bold text-slate-700 leading-tight">Drets d'Imatge i Propietat Intel·lectual</h3>
                         </div>
 
                         <div class="p-4 md:p-5 flex flex-col gap-4">
-                            <!-- Bloque Derechos de Imagen -->
+                            <!-- Bloc Drets d'Imatge -->
                             <div class="flex flex-col sm:flex-row items-center gap-3 w-full bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-indigo-200 transition-colors">
                                 <div class="w-full sm:w-1/3 flex items-center gap-2 font-medium text-slate-700 text-sm">
-                                    <i class="fa-solid fa-camera-retro text-indigo-500"></i> Derechos de Imagen
+                                    <i class="fa-solid fa-camera-retro text-indigo-500"></i> Drets d'Imatge
                                 </div>
                                 
                                 <div class="relative w-full sm:w-1/3">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fa-solid fa-euro-sign text-slate-400 text-xs"></i>
                                     </div>
-                                    <input type="number" id="inputImagenImporte" placeholder="Importe bruto" min="0" step="0.01" oninput="ocultarResultados()" class="pl-8 pr-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                    <input type="number" id="inputImagenImporte" placeholder="Import brut" min="0" step="0.01" oninput="ocultarResultados()" class="pl-8 pr-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                                 </div>
                                 
                                 <div class="w-full sm:w-1/3">
-                                    <input type="text" id="inputImagenIrpfLabel" disabled title="Retención IRPF a aplicar sobre Derechos de Imagen" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-100 text-slate-600 cursor-not-allowed font-semibold text-center shadow-inner">
+                                    <input type="text" id="inputImagenIrpfLabel" disabled title="Retenció IRPF a aplicar sobre Drets d'Imatge" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-slate-100 text-slate-600 cursor-not-allowed font-semibold text-center shadow-inner">
                                 </div>
                             </div>
 
-                            <!-- Bloque Propiedad Intelectual -->
+                            <!-- Bloc Propietat Intel·lectual -->
                             <div class="flex flex-col w-full bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-amber-200 transition-colors">
                                 <div class="flex flex-col sm:flex-row items-center gap-3 w-full">
                                     <div class="w-full sm:w-1/3 flex items-center gap-2 font-medium text-slate-700 text-sm">
-                                        <i class="fa-solid fa-lightbulb text-amber-500"></i> Propiedad Intelectual
+                                        <i class="fa-solid fa-lightbulb text-amber-500"></i> Propietat Intel·lectual
                                     </div>
                                     
                                     <div class="relative w-full sm:w-1/3">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <i class="fa-solid fa-euro-sign text-slate-400 text-xs"></i>
                                         </div>
-                                        <input type="number" id="inputPIImporte" placeholder="Importe bruto" min="0" step="0.01" oninput="ocultarResultados()" class="pl-8 pr-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                        <input type="number" id="inputPIImporte" placeholder="Import brut" min="0" step="0.01" oninput="ocultarResultados()" class="pl-8 pr-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                                     </div>
                                     
                                     <div class="relative w-full sm:w-1/3">
                                         <select id="selectIRPFPI" onchange="ocultarResultados()" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white cursor-pointer truncate font-semibold text-slate-700 shadow-sm">
-                                            <!-- Inyectado vía JS -->
+                                            <!-- Injectat via JS -->
                                         </select>
                                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                             <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
@@ -310,7 +310,7 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Fila exclusiva para el disclaimer del IRPF -->
+                                <!-- Fila exclusiva pel disclaimer de l'IRPF -->
                                 <div class="flex justify-end w-full mt-2 px-1">
                                     <p id="disclaimerPIText" class="text-[11px] text-slate-500 text-right leading-tight sm:max-w-[70%]"></p>
                                 </div>
@@ -318,34 +318,34 @@
                         </div>
                     </div>
 
-                    <!-- BOTÓN CALCULAR -->
+                    <!-- BOTÓ CALCULAR -->
                     <div class="flex justify-center mb-6">
                         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-10 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 active:scale-95 text-lg">
                             <i class="fa-solid fa-play text-sm"></i>
-                            <span id="btnCalculateText">Calcular Liquidación</span>
+                            <span id="btnCalculateText">Calcular Liquidació</span>
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- SECCIÓN RESULTADOS -->
+            <!-- SECCIÓ RESULTATS -->
             <div id="resultsSection" class="hidden relative">
                 
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                     <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
-                        Desglose de la Liquidación Zenit
+                        Desglossament de la Liquidació Zenit
                     </h2>
                     
                     <div class="flex flex-wrap gap-3">
                         <button id="btnVolver" onclick="volverAEditar()" type="button" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-arrow-left text-slate-500"></i> Editar datos
+                            <i class="fa-solid fa-arrow-left text-slate-500"></i> Editar dades
                         </button>
                         <button id="btnCopyEmail" onclick="copiarPortapapeles()" type="button" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
-                            <i class="fa-regular fa-copy text-blue-500"></i> Copiar Portapapeles
+                            <i class="fa-regular fa-copy text-blue-500"></i> Copiar Porta-retalls
                         </button>
                         <button id="btnDownloadPDF" onclick="generarPDF()" type="button" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-file-pdf text-red-400"></i> Descargar PDF
+                            <i class="fa-solid fa-file-pdf text-red-400"></i> Descarregar PDF
                         </button>
                     </div>
                 </div>
@@ -354,8 +354,8 @@
                     <i class="fa-solid fa-bullseye text-emerald-500 text-xl flex-shrink-0"></i>
                     <div>
                         <p class="text-sm text-emerald-800 m-0">
-                            Para conseguir un neto de <strong id="gsNetoTarget">0,00 €</strong>, 
-                            el importe bruto de facturación debería ser de <strong id="gsBrutoResult" class="text-lg">0,00 €</strong>.
+                            Per aconseguir un net de <strong id="gsNetoTarget">0,00 €</strong>, 
+                            l'import brut de facturació hauria de ser de <strong id="gsBrutoResult" class="text-lg">0,00 €</strong>.
                         </p>
                     </div>
                 </div>
@@ -363,23 +363,23 @@
                 <div id="optimizationBanner" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
                     <i class="fa-solid fa-lightbulb text-amber-500 text-xl flex-shrink-0"></i>
                     <div>
-                        <h4 class="text-sm font-bold text-amber-800 mb-0.5">¡Aviso de optimización de tramo!</h4>
+                        <h4 class="text-sm font-bold text-amber-800 mb-0.5">Avís d'optimització de tram!</h4>
                         <p class="text-sm text-amber-800 m-0" id="optMessage"></p>
                     </div>
                 </div>
 
                 <div id="pdfSummary" class="hidden mb-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
-                    <h3 class="text-sm font-bold text-slate-700 mb-4 border-b border-slate-200 pb-2">Datos iniciales proporcionados para el cálculo</h3>
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 border-b border-slate-200 pb-2">Dades inicials proporcionades per al càlcul</h3>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm" id="pdfSummaryContent"></div>
                 </div>
 
-                <!-- TABLA ZENIT -->
+                <!-- TAULA ZENIT -->
                 <div id="multiDayView" class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
                     <div class="min-w-[800px] flex flex-col">
                         <div class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
-                            <div class="py-3 px-4 font-semibold">Concepto</div>
-                            <div class="py-3 px-4 font-semibold text-right">Importe</div>
-                            <div class="py-3 px-4 font-semibold text-right">Comisión</div>
+                            <div class="py-3 px-4 font-semibold">Concepte</div>
+                            <div class="py-3 px-4 font-semibold text-right">Import</div>
+                            <div class="py-3 px-4 font-semibold text-right">Comissió</div>
                             <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
                             <div class="py-3 px-4 font-semibold text-right">Seg. Soc.</div>
                             <div class="py-3 px-4 font-semibold text-right">IRPF</div>
@@ -394,19 +394,19 @@
 
                 <div id="taimanDivider" class="border-t border-slate-200 my-8 hidden"></div>
 
-                <!-- TABLA TAIMAN -->
+                <!-- TAULA TAIMAN -->
                 <div id="taimanSection" class="hidden break-inside-avoid">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-guitar text-slate-400"></i>
-                        Desglose de la Liquidación Taiman
+                        Desglossament de la Liquidació Taiman
                     </h2>
                     
                     <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
                         <div class="min-w-[800px] flex flex-col">
                             <div class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.2fr_1.2fr] items-center">
-                                <div class="py-3 px-4 font-semibold">Concepto</div>
-                                <div class="py-3 px-4 font-semibold text-right">Importe</div>
-                                <div class="py-3 px-4 font-semibold text-right">Comisión</div>
+                                <div class="py-3 px-4 font-semibold">Concepte</div>
+                                <div class="py-3 px-4 font-semibold text-right">Import</div>
+                                <div class="py-3 px-4 font-semibold text-right">Comissió</div>
                                 <div class="py-3 px-4 font-semibold text-right">Base liquidable</div>
                                 <div class="py-3 px-4 font-semibold text-right" id="taimanIRPFHeader">7% IRPF</div>
                                 <div class="py-3 px-4 font-semibold text-right">A liquidar</div>
@@ -414,7 +414,7 @@
                             
                             <div class="bg-purple-50/50">
                                 <div class="py-4 px-4 hover:bg-purple-100/50 transition-colors text-sm grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.2fr_1.2fr] items-center">
-                                    <div class="font-bold text-purple-600 uppercase text-xs tracking-wider flex items-center"><i class="fa-solid fa-file-invoice text-purple-500 mr-2"></i>Liquidación Taiman</div>
+                                    <div class="font-bold text-purple-600 uppercase text-xs tracking-wider flex items-center"><i class="fa-solid fa-file-invoice text-purple-500 mr-2"></i>Liquidació Taiman</div>
                                     <div class="text-right tabular-nums font-bold text-slate-900" id="resTaimanImporte">0,00 €</div>
                                     <div class="text-right tabular-nums font-bold text-red-600" id="resTaimanComision">0,00 €</div>
                                     <div class="text-right tabular-nums font-bold text-slate-900" id="resTaimanBaseLiq">0,00 €</div>
@@ -429,7 +429,7 @@
                 <!-- DISCLAIMER -->
                 <div class="mt-8 pt-5 border-t border-slate-200 text-center break-inside-avoid">
                     <p class="text-xs text-slate-400 italic">
-                        El resultado que se obtiene a través de este simulador no es vinculante para Espacio Arte Zenit, ni genera derecho alguno a su favor.
+                        El resultat que s'obté a través d'aquest simulador no és vinculant per a Espacio Arte Zenit, ni genera cap dret al seu favor.
                     </p>
                 </div>
 
@@ -440,16 +440,16 @@
 
     <script>
         // =========================================================================
-        // CONFIGURACIÓN GLOBAL DE LA APLICACIÓN (Diccionario Centralizado)
+        // CONFIGURACIÓ GLOBAL DE L'APLICACIÓ (Diccionari Centralitzat)
         // =========================================================================
         const APP_CONFIG = {
             tasas: {
                 comisionAgencia: 0.05,
                 comisionTaiman: 0.05,
                 irpfTaiman: 0.07,
-                irpfImagen: 19, // Expresado en %
-                irpfPI: { bajo: 7, alto: 15 }, // Expresado en %
-                irpfGeneralMinimo: 2, // Expresado en %
+                irpfImagen: 19, // Expressat en %
+                irpfPI: { bajo: 7, alto: 15 }, // Expressat en %
+                irpfGeneralMinimo: 2, // Expressat en %
                 kilometraje: 0.2737
             },
             limites: {
@@ -457,24 +457,24 @@
                 umbralPI: 22000
             },
             dietas: [
-                { id: 'esp', nombre: 'Territorio español', precio: 28.0736 },
-                { id: 'ext', nombre: 'Fuera de territorio español', precio: 50.6105 },
-                { id: 'esp_pernocta', nombre: 'Pernocta territorio español', precio: 56.1473 },
-                { id: 'ext_pernocta', nombre: 'Pernocta fuera territorio español', precio: 96.1578 }
+                { id: 'esp', nombre: 'Territori espanyol', precio: 28.0736 },
+                { id: 'ext', nombre: 'Fora de territori espanyol', precio: 50.6105 },
+                { id: 'esp_pernocta', nombre: 'Pernocta territori espanyol', precio: 56.1473 },
+                { id: 'ext_pernocta', nombre: 'Pernocta fora de territori espanyol', precio: 96.1578 }
             ],
             materiales: [
-                { id: 'altavoces', nombre: 'Altavoces', precio: 105.2632 },
-                { id: 'bajos', nombre: 'Bajos y complementos', precio: 73.6842 },
-                { id: 'bat_acustica', nombre: 'Batería acústica', precio: 105.2632 },
-                { id: 'bat_electrica', nombre: 'Batería eléctrica', precio: 105.2632 },
+                { id: 'altavoces', nombre: 'Altaveus', precio: 105.2632 },
+                { id: 'bajos', nombre: 'Baixos i complements', precio: 73.6842 },
+                { id: 'bat_acustica', nombre: 'Bateria acústica', precio: 105.2632 },
+                { id: 'bat_electrica', nombre: 'Bateria elèctrica', precio: 105.2632 },
                 { id: 'cables', nombre: 'Cables', precio: 5.2632 },
-                { id: 'clarinete', nombre: 'Clarinete', precio: 84.2105 },
-                { id: 'contrabajo', nombre: 'Contrabajo', precio: 105.2632 },
+                { id: 'clarinete', nombre: 'Clarinet', precio: 84.2105 },
+                { id: 'contrabajo', nombre: 'Contrabaix', precio: 105.2632 },
                 { id: 'guit_acustica', nombre: 'Guitarra acústica', precio: 73.6842 },
-                { id: 'guit_clasica', nombre: 'Guitarra clásica', precio: 63.1579 },
-                { id: 'guit_electrica', nombre: 'Guitarra eléctrica', precio: 105.2632 },
-                { id: 'microfono', nombre: 'Micrófono', precio: 52.6316 },
-                { id: 'ordenador', nombre: 'Ordenador', precio: 63.1579 }
+                { id: 'guit_clasica', nombre: 'Guitarra clàssica', precio: 63.1579 },
+                { id: 'guit_electrica', nombre: 'Guitarra elèctrica', precio: 105.2632 },
+                { id: 'microfono', nombre: 'Micròfon', precio: 52.6316 },
+                { id: 'ordenador', nombre: 'Ordinador', precio: 63.1579 }
             ],
             ssTramos: [
                 { max: 75.00, cuota: 21.00 },
@@ -489,7 +489,7 @@
             ]
         };
 
-        // Formateador de moneda para euros garantizando separador de miles (ej: 3.000,00 €)
+        // Formatejador de moneda per a euros garantint separador de milers (ex: 3.000,00 €)
         function formatCurrency(num) {
             if (num === null || isNaN(num)) return "0,00 €";
             let isNegative = num < 0;
@@ -504,9 +504,9 @@
         let listaMaterial = [];
         let listaDietas = [];
 
-        // Inicializador automático para inyectar configuración en HTML
+        // Inicialitzador automàtic per injectar configuració en HTML
         function initApp() {
-            // Dietas
+            // Dietes
             const selectDieta = document.getElementById('selectDieta');
             APP_CONFIG.dietas.forEach(d => {
                 const opt = document.createElement('option');
@@ -515,7 +515,7 @@
                 selectDieta.appendChild(opt);
             });
 
-            // Materiales (se insertan antes del "Otros")
+            // Materials (s'insereixen abans del "Altres")
             const selectMat = document.getElementById('selectMaterial');
             const optionOtros = selectMat.querySelector('option[value="custom"]');
             APP_CONFIG.materiales.forEach(mat => {
@@ -525,30 +525,30 @@
                 selectMat.insertBefore(opt, optionOtros);
             });
 
-            // Configurar Textos e Inputs estáticos desde APP_CONFIG
+            // Configurar Textos e Inputs estàtics des de APP_CONFIG
             document.getElementById('inputIRPF').min = APP_CONFIG.tasas.irpfGeneralMinimo;
             document.getElementById('inputIRPF').value = APP_CONFIG.tasas.irpfGeneralMinimo;
-            document.getElementById('errorIRPF').textContent = `El IRPF mínimo es ${APP_CONFIG.tasas.irpfGeneralMinimo}%.`;
-            document.getElementById('errorImporteBruto').textContent = `El importe mínimo es ${APP_CONFIG.limites.cacheMinimoDiario}€.`;
+            document.getElementById('errorIRPF').textContent = `L'IRPF mínim és de ${APP_CONFIG.tasas.irpfGeneralMinimo}%.`;
+            document.getElementById('errorImporteBruto').textContent = `L'import mínim és de ${APP_CONFIG.limites.cacheMinimoDiario}€.`;
             
-            document.getElementById('inputImagenIrpfLabel').value = `${APP_CONFIG.tasas.irpfImagen}% Retención IRPF`;
-            document.getElementById('disclaimerPIText').innerHTML = `<span class="text-amber-500 font-bold">*</span> Según las rentas anuales en este concepto sean (o no) superiores a ${APP_CONFIG.limites.umbralPI.toLocaleString('es-ES')}€.`;
+            document.getElementById('inputImagenIrpfLabel').value = `${APP_CONFIG.tasas.irpfImagen}% Retenció IRPF`;
+            document.getElementById('disclaimerPIText').innerHTML = `<span class="text-amber-500 font-bold">*</span> Segons les rendes anuals en aquest concepte siguin superiors (o no) a ${APP_CONFIG.limites.umbralPI.toLocaleString('es-ES')}€.`;
             document.getElementById('taimanIRPFHeader').textContent = `${APP_CONFIG.tasas.irpfTaiman * 100}% IRPF`;
 
             // IRPF P.I. Select
             const selectPI = document.getElementById('selectIRPFPI');
             const optBajo = document.createElement('option');
             optBajo.value = APP_CONFIG.tasas.irpfPI.bajo;
-            optBajo.textContent = `${APP_CONFIG.tasas.irpfPI.bajo}% Retención IRPF *`;
+            optBajo.textContent = `${APP_CONFIG.tasas.irpfPI.bajo}% Retenció IRPF *`;
             selectPI.appendChild(optBajo);
             
             const optAlto = document.createElement('option');
             optAlto.value = APP_CONFIG.tasas.irpfPI.alto;
-            optAlto.textContent = `${APP_CONFIG.tasas.irpfPI.alto}% Retención IRPF *`;
+            optAlto.textContent = `${APP_CONFIG.tasas.irpfPI.alto}% Retenció IRPF *`;
             selectPI.appendChild(optAlto);
         }
 
-        // Llamar inicializador al cargar
+        // Cridar inicialitzador en carregar
         document.addEventListener('DOMContentLoaded', initApp);
 
 
@@ -573,20 +573,20 @@
 
             if (mode === 'bruto') {
                 btnBruto.className = "px-5 py-2.5 rounded-md bg-white shadow-sm text-sm font-bold text-slate-800 transition-all z-10";
-                btnBruto.innerHTML = '<i class="fa-solid fa-arrow-down-wide-short mr-2 text-blue-600"></i>De Bruto a Neto';
+                btnBruto.innerHTML = '<i class="fa-solid fa-arrow-down-wide-short mr-2 text-blue-600"></i>De Brut a Net';
                 btnNeto.className = "px-5 py-2.5 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 transition-all z-10";
-                btnNeto.innerHTML = '<i class="fa-solid fa-bullseye mr-2"></i>Objetivo Neto';
-                lblImporte.textContent = "Importe venta bruto";
+                btnNeto.innerHTML = '<i class="fa-solid fa-bullseye mr-2"></i>Objectiu Net';
+                lblImporte.textContent = "Import venda brut";
                 lblImporte.className = "block text-sm font-bold text-blue-600 mb-2 transition-colors";
-                btnCalc.textContent = "Calcular Liquidación";
+                btnCalc.textContent = "Calcular Liquidació";
             } else {
                 btnNeto.className = "px-5 py-2.5 rounded-md bg-white shadow-sm text-sm font-bold text-slate-800 transition-all z-10";
-                btnNeto.innerHTML = '<i class="fa-solid fa-bullseye mr-2 text-emerald-600"></i>Objetivo Neto';
+                btnNeto.innerHTML = '<i class="fa-solid fa-bullseye mr-2 text-emerald-600"></i>Objectiu Net';
                 btnBruto.className = "px-5 py-2.5 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 transition-all z-10";
-                btnBruto.innerHTML = '<i class="fa-solid fa-arrow-down-wide-short mr-2"></i>De Bruto a Neto';
-                lblImporte.textContent = "Total Neto a Percibir";
+                btnBruto.innerHTML = '<i class="fa-solid fa-arrow-down-wide-short mr-2"></i>De Brut a Net';
+                lblImporte.textContent = "Total Net a Percebre";
                 lblImporte.className = "block text-sm font-bold text-emerald-600 mb-2 transition-colors";
-                btnCalc.textContent = "Calcular importe bruto";
+                btnCalc.textContent = "Calcular import brut";
             }
         }
 
@@ -646,10 +646,10 @@
                         </div>
                     </li>`;
             });
-            if (!listaDietas.length) ul.innerHTML = '<li class="text-sm text-slate-400 italic py-2 text-center">Ninguna dieta añadida</li>';
+            if (!listaDietas.length) ul.innerHTML = '<li class="text-sm text-slate-400 italic py-2 text-center">Cap dieta afegida</li>';
             
             const hd = document.getElementById('dietasHeaderTotal');
-            if (totalDays > 0) { hd.textContent = `${totalDays} dieta(s)`; hd.classList.remove('hidden'); } else hd.classList.add('hidden');
+            if (totalDays > 0) { hd.textContent = `${totalDays} dieta/es`; hd.classList.remove('hidden'); } else hd.classList.add('hidden');
         }
 
         function toggleMaterial() {
@@ -674,7 +674,7 @@
                 name = document.getElementById('inputCustomName').value.trim();
                 price = parseFloat(document.getElementById('inputCustomPrice').value);
                 if (!name || isNaN(price) || price <= 0) return document.getElementById('errorCustomMaterial').classList.remove('hidden');
-                name = "Otros: " + name;
+                name = "Altres: " + name;
             } else {
                 price = parseFloat(select.value);
                 name = select.options[select.selectedIndex].text.split(' (')[0];
@@ -707,13 +707,13 @@
                         </div>
                     </li>`;
             });
-            if (!listaMaterial.length) ul.innerHTML = '<li class="text-sm text-slate-400 italic py-2 text-center">Ningún material añadido</li>';
+            if (!listaMaterial.length) ul.innerHTML = '<li class="text-sm text-slate-400 italic py-2 text-center">Cap material afegit</li>';
             document.getElementById('totalMaterialUI').textContent = formatCurrency(total);
             const hd = document.getElementById('materialHeaderTotal');
             if (total > 0) { hd.textContent = formatCurrency(total); hd.classList.remove('hidden'); } else hd.classList.add('hidden');
         }
 
-        // --- FUNCIONES DE CÁLCULO ESTRICTO ---
+        // --- FUNCIONS DE CÀLCUL ESTRICTE ---
         function round2(num) { return Math.round((num + Number.EPSILON) * 100) / 100; }
 
         function calcularDia(bruto, porcentajeIRPF) {
@@ -741,7 +741,7 @@
             let bucket = round2(importeBrutoPrueba - (params.dias * APP_CONFIG.limites.cacheMinimoDiario));
             let dData = Array.from({length: params.dias}, (_, i) => ({ dia: i+1, cache: APP_CONFIG.limites.cacheMinimoDiario, km: 0, dieta: 0, alquiler: 0 }));
 
-            // 1. Kilometraje
+            // 1. Quilometratge
             if (params.km > 0) {
                 let reqKm = params.km * APP_CONFIG.tasas.kilometraje;
                 let availableKm = Math.min(round2(reqKm * params.dias), bucket);
@@ -753,7 +753,7 @@
                 bucket = Math.max(0, bucket); 
             }
 
-            // 2. Dietas
+            // 2. Dietes
             if (params.listaDietas && params.listaDietas.length > 0) {
                 let dietasSolicitadas = [];
                 params.listaDietas.forEach(d => { for(let i = 0; i < d.days; i++) dietasSolicitadas.push(round2(d.price)); });
@@ -764,7 +764,7 @@
                 bucket = Math.max(0, bucket);
             }
 
-            // 3. Gastos
+            // 3. Despeses
             let gastosJustificadosSim = 0;
             if (params.gastos > 0 && bucket > 0) {
                 gastosJustificadosSim = Math.min(round2(params.gastos), bucket);
@@ -780,7 +780,7 @@
                 bucket = Math.max(0, bucket);
             }
 
-            // 5. ASIGNACIÓN DERECHOS E IMAGEN/PI (En orden)
+            // 5. ASSIGNACIÓ DRETS D'IMATGE/PI (En ordre)
             let derechosSim = [];
             let totalsZenit = { bruto: 0, comision: 0, coste: 0, segSocial: 0, irpf: 0, aLiquidar: 0 };
 
@@ -815,10 +815,10 @@
                 });
             }
 
-            // 6. El resto va al Caché del último día
+            // 6. La resta va al Caixet de l'últim dia
             if (bucket > 0) dData[dData.length - 1].cache = round2(dData[dData.length - 1].cache + bucket);
 
-            // Generación de Resultados por Día (Zenit general)
+            // Generació de Resultats per Dia (Zenit general)
             let dayResults = [];
             for (let i = 0; i < dData.length; i++) {
                 const res = calcularDia(dData[i].cache, params.irpf);
@@ -857,7 +857,7 @@
             let taimanNeto = 0, taimanRes = null;
             let taimanImporteBase = 0;
             
-            // Extraer la Base Liquidable estricta de Zenit de cada día para consolidar Taiman
+            // Extreure la Base Liquidable estricta de Zenit de cada dia per consolidar Taiman
             dData.forEach(d => {
                 if (d.alquiler > 0) {
                     const c = round2(d.alquiler * APP_CONFIG.tasas.comisionAgencia);
@@ -886,14 +886,14 @@
             let inputGastos = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
             let totalAlquiler = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
             
-            // Extracción Nuevos Derechos separados
+            // Extracció Nous Drets separats
             let importeImagen = parseFloat(document.getElementById('inputImagenImporte').value) || 0;
             let importePI = parseFloat(document.getElementById('inputPIImporte').value) || 0;
             let irpfPI = parseFloat(document.getElementById('selectIRPFPI').value) || APP_CONFIG.tasas.irpfPI.bajo;
 
             let arrayDerechos = [];
-            if (importeImagen > 0) arrayDerechos.push({ tipo: 'imagen', nombre: 'Derechos de Imagen', importe: importeImagen, irpf: APP_CONFIG.tasas.irpfImagen });
-            if (importePI > 0) arrayDerechos.push({ tipo: 'pi', nombre: 'Propiedad Intelectual', importe: importePI, irpf: irpfPI });
+            if (importeImagen > 0) arrayDerechos.push({ tipo: 'imagen', nombre: "Drets d'Imatge", importe: importeImagen, irpf: APP_CONFIG.tasas.irpfImagen });
+            if (importePI > 0) arrayDerechos.push({ tipo: 'pi', nombre: "Propietat Intel·lectual", importe: importePI, irpf: irpfPI });
 
             document.getElementById('inputDias').value = inputDias; 
             document.getElementById('inputIRPF').value = inputIRPF;
@@ -920,19 +920,19 @@
             const baseBruto = round2(minBrutoRequerido + getReqExtras(params));
             let brutoFinal = 0, resultadoCalculo = null;
 
-            // Extraer solo los topes para el optimizador (cambiar Infinity a 500000 para el algoritmo)
+            // Extreure només els topalls per a l'optimitzador (canviar Infinity a 500000 per l'algoritme)
             const thresholdsCache = APP_CONFIG.ssTramos.map(t => t.max === Infinity ? 500000.00 : t.max);
 
             if (calcMode === 'bruto') {
                 if (inputPrincipal < minBrutoRequerido && document.getElementById('inputImportePrincipal').value !== "") {
                     inputPrincipal = minBrutoRequerido; document.getElementById('inputImportePrincipal').value = minBrutoRequerido; 
-                    document.getElementById('errorImporteBruto').textContent = `El importe mínimo para ${inputDias} día(s) es ${minBrutoRequerido}€.`;
+                    document.getElementById('errorImporteBruto').textContent = `L'import mínim per a ${inputDias} dia/es és de ${minBrutoRequerido}€.`;
                     document.getElementById('errorImporteBruto').classList.remove('hidden'); 
                 }
                 brutoFinal = inputPrincipal; resultadoCalculo = simularEscenario(brutoFinal, params);
                 document.getElementById('goalSeekBanner').classList.add('hidden');
 
-                // Optimización
+                // Optimització
                 let possibleOptimizations = [];
                 for (let i = 0; i < thresholdsCache.length; i++) {
                     let peakGross = round2(baseBruto + (thresholdsCache[i] - APP_CONFIG.limites.cacheMinimoDiario));
@@ -945,7 +945,7 @@
                 if (possibleOptimizations.length > 0) {
                     let bestOpt = possibleOptimizations.reduce((prev, curr) => curr.neto > prev.neto || (curr.neto === prev.neto && curr.bruto < prev.bruto) ? curr : prev);
                     optBanner.classList.remove('hidden');
-                    document.getElementById('optMessage').innerHTML = `Si facturaras <strong>${formatCurrency(bestOpt.bruto)}</strong> brutos (menos que ahora), ganarías ${bestOpt.neto > resultadoCalculo.netoCalculado ? '<strong>MÁS</strong>' : 'exactamente el <strong>MISMO</strong>'} dinero neto (<strong>${formatCurrency(bestOpt.neto)}</strong>) al evitar saltar de tramo en la Seguridad Social.`;
+                    document.getElementById('optMessage').innerHTML = `Si facturessis <strong>${formatCurrency(bestOpt.bruto)}</strong> bruts (menys que ara), guanyaries ${bestOpt.neto > resultadoCalculo.netoCalculado ? '<strong>MÉS</strong>' : 'exactament els <strong>MATEIXOS</strong>'} diners nets (<strong>${formatCurrency(bestOpt.neto)}</strong>) a l'evitar saltar de tram a la Seguretat Social.`;
                 } else optBanner.classList.add('hidden');
 
             } else {
@@ -991,36 +991,36 @@
 
             globalSimulationResult = resultadoCalculo;
             
-            // Ocultar formulario y mostrar resultados con scroll suave arriba
+            // Ocultar formulari i mostrar resultats amb scroll suau amunt
             document.getElementById('inputSection').classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             // --- RENDER PDF SUMMARY ---
-            let derechosSummary = 'Ninguno aplicado';
+            let derechosSummary = 'Cap aplicat';
             if (arrayDerechos.length > 0) {
                 derechosSummary = arrayDerechos.map(d => `${d.nombre}: ${formatCurrency(d.importe)} (IRPF ${d.irpf}%)`).join('<br>');
             }
 
             document.getElementById('pdfSummaryContent').innerHTML = `
-                <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Importe de venta bruto' : 'Objetivo Neto Solicitado'}</span><span class="font-bold text-slate-800">${formatCurrency(inputPrincipal)}</span></div>
-                <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Total a liquidar (Neto)' : 'Importe Bruto Resultante'}</span><span class="font-bold text-slate-800 ${calcMode === 'bruto' ? 'text-blue-700' : 'text-blue-600'}">${formatCurrency(calcMode === 'bruto' ? resultadoCalculo.netoCalculado : brutoFinal)}</span></div>
-                <div><span class="text-slate-500 block text-xs">Nº Días</span><span class="font-bold text-slate-800">${inputDias}</span></div>
-                <div><span class="text-slate-500 block text-xs">% retención IRPF general</span><span class="font-bold text-slate-800">${inputIRPF}%</span></div>
-                <div><span class="text-slate-500 block text-xs">Kilometraje Diario</span><span class="font-bold text-slate-800">${inputKilometraje} km</span></div>
-                <div><span class="text-slate-500 block text-xs">Gastos Justificados</span><span class="font-bold text-slate-800">${formatCurrency(inputGastos)}</span></div>
-                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Dietas</span><span class="font-bold text-slate-800 text-sm">${listaDietas.length ? listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>') : 'Ninguna añadida'}</span></div>
-                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Material de Alquiler</span><span class="font-bold text-slate-800 text-sm">${listaMaterial.length ? listaMaterial.map(m => `${m.qty}x ${m.name}`).join(', ') : 'Ninguno añadido'}</span></div>
-                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Derechos de Imagen y P.I.</span><span class="font-bold text-slate-800 text-sm">${derechosSummary}</span></div>
+                <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Import de venda brut' : 'Objectiu Net Sol·licitat'}</span><span class="font-bold text-slate-800">${formatCurrency(inputPrincipal)}</span></div>
+                <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Total a liquidar (Net)' : 'Import Brut Resultant'}</span><span class="font-bold text-slate-800 ${calcMode === 'bruto' ? 'text-blue-700' : 'text-blue-600'}">${formatCurrency(calcMode === 'bruto' ? resultadoCalculo.netoCalculado : brutoFinal)}</span></div>
+                <div><span class="text-slate-500 block text-xs">Nº Dies</span><span class="font-bold text-slate-800">${inputDias}</span></div>
+                <div><span class="text-slate-500 block text-xs">% retenció IRPF general</span><span class="font-bold text-slate-800">${inputIRPF}%</span></div>
+                <div><span class="text-slate-500 block text-xs">Quilometratge Diari</span><span class="font-bold text-slate-800">${inputKilometraje} km</span></div>
+                <div><span class="text-slate-500 block text-xs">Despeses Justificades</span><span class="font-bold text-slate-800">${formatCurrency(inputGastos)}</span></div>
+                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Dietes</span><span class="font-bold text-slate-800 text-sm">${listaDietas.length ? listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>') : 'Cap afegida'}</span></div>
+                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Material de Lloguer</span><span class="font-bold text-slate-800 text-sm">${listaMaterial.length ? listaMaterial.map(m => `${m.qty}x ${m.name}`).join(', ') : 'Cap afegit'}</span></div>
+                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Drets d'Imatge i P.I.</span><span class="font-bold text-slate-800 text-sm">${derechosSummary}</span></div>
             `;
 
-            // --- RENDER TABLAS ---
+            // --- RENDER TAULES ---
             const multiDayBody = document.getElementById('multiDayBody');
             multiDayBody.innerHTML = '';
             resultadoCalculo.dayResults.forEach(resDia => {
                 const dayBlock = document.createElement('div');
                 dayBlock.className = 'break-inside-avoid flex flex-col border-b border-slate-200 last:border-0';
-                let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-regular fa-calendar-days mr-2"></i>Día ${resDia.dataOriginal.dia}</div><div class="flex flex-col divide-y divide-slate-100">`;
+                let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-regular fa-calendar-days mr-2"></i>Dia ${resDia.dataOriginal.dia}</div><div class="flex flex-col divide-y divide-slate-100">`;
                 
                 const trGen = (icon, title, b, c, cost, ss, irpf, n, ext) => `
                     <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
@@ -1033,10 +1033,10 @@
                         <div class="text-right tabular-nums font-bold ${ext ? 'text-purple-600 italic' : 'text-blue-700'}">${ext || formatCurrency(n)}</div>
                     </div>`;
 
-                html += trGen('fa-microphone', 'Caché', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
-                if (resDia.dataOriginal.km > 0) html += trGen('fa-car', 'Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
-                if (resDia.dataOriginal.dieta > 0) html += trGen('fa-utensils', 'Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
-                if (resDia.dataOriginal.alquiler > 0) html += trGen('fa-guitar', 'Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
+                html += trGen('fa-microphone', 'Caixet', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                if (resDia.dataOriginal.km > 0) html += trGen('fa-car', 'Quilometratge', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.dieta > 0) html += trGen('fa-utensils', 'Dietes', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.alquiler > 0) html += trGen('fa-guitar', 'Lloguer Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
                 
                 dayBlock.innerHTML = html + `</div>`;
                 multiDayBody.appendChild(dayBlock);
@@ -1046,7 +1046,7 @@
                 const gRes = resultadoCalculo.gastosRes;
                 multiDayBody.innerHTML += `<div class="break-inside-avoid border-b border-slate-200 bg-slate-100/50">
                     <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
-                        <div class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Gastos Justificados</div>
+                        <div class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Despeses Justificades</div>
                         <div class="text-right tabular-nums text-slate-900">${formatCurrency(gRes.bruto)}</div>
                         <div class="text-right tabular-nums text-red-600">- ${formatCurrency(gRes.comision)}</div>
                         <div class="text-right tabular-nums text-slate-900">${formatCurrency(gRes.baseLiq)}</div>
@@ -1055,13 +1055,13 @@
                     </div></div>`;
             }
 
-            // DERECHOS DE IMAGEN/PI
+            // DRETS D'IMATGE/PI
             if (resultadoCalculo.derechosSim && resultadoCalculo.derechosSim.length > 0) {
                 resultadoCalculo.derechosSim.forEach(dRes => {
                     const iconClass = dRes.tipo === 'imagen' ? 'fa-camera-retro' : 'fa-lightbulb';
                     multiDayBody.innerHTML += `<div class="break-inside-avoid border-b border-slate-200 bg-indigo-50/40">
                         <div class="hover:bg-indigo-50 transition-colors text-sm py-3 px-4 grid grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1fr_1fr_1.2fr] items-center">
-                            <div class="font-bold text-indigo-800 text-xs flex items-center"><i class="fa-solid ${iconClass} text-indigo-400 mr-2"></i>${dRes.nombre} <span class="text-[10px] text-indigo-400 font-normal ml-1">(${dRes.irpfPct}% Retención)</span></div>
+                            <div class="font-bold text-indigo-800 text-xs flex items-center"><i class="fa-solid ${iconClass} text-indigo-400 mr-2"></i>${dRes.nombre} <span class="text-[10px] text-indigo-400 font-normal ml-1">(${dRes.irpfPct}% Retenció)</span></div>
                             <div class="text-right tabular-nums text-slate-900">${formatCurrency(dRes.bruto)}</div>
                             <div class="text-right tabular-nums text-red-600">- ${formatCurrency(dRes.comision)}</div>
                             <div class="text-right tabular-nums text-slate-900">${formatCurrency(dRes.baseLiq)}</div>
@@ -1099,13 +1099,13 @@
 
         function copiarPortapapeles() {
             if (!globalSimulationResult) return;
-            let html = `<div style="font-family: Arial, sans-serif; color: #334155; max-width: 1000px;"><h3 style="color: #1e293b; font-size: 16px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglose Liquidación Zenit</h3>
+            let html = `<div style="font-family: Arial, sans-serif; color: #334155; max-width: 1000px;"><h3 style="color: #1e293b; font-size: 16px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglossament Liquidació Zenit</h3>
                 <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;"><thead><tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;">
-                <th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Día / Concepto</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Importe</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Comisión</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Base liquidable</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Seg. Soc.</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">IRPF</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">A liquidar</th></tr></thead><tbody>`;
+                <th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Dia / Concepte</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Import</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Comissió</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Base liquidable</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Seg. Soc.</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">IRPF</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">A liquidar</th></tr></thead><tbody>`;
 
             const tdS = "padding: 6px 8px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap;";
             globalSimulationResult.dayResults.forEach(resDia => {
-                html += `<tr style="background-color: #eff6ff;"><td colspan="7" style="padding: 8px; font-weight: bold; color: #1e40af; border-bottom: 1px solid #e2e8f0; text-align: left;">Día ${resDia.dataOriginal.dia}</td></tr>`;
+                html += `<tr style="background-color: #eff6ff;"><td colspan="7" style="padding: 8px; font-weight: bold; color: #1e40af; border-bottom: 1px solid #e2e8f0; text-align: left;">Dia ${resDia.dataOriginal.dia}</td></tr>`;
                 
                 const addRow = (tit, b, c, bl, ss, irpf, net, ext) => {
                     html += `<tr><td style="padding: 6px 8px 6px 20px; border-bottom: 1px solid #f1f5f9; text-align: left;">${tit}</td>
@@ -1115,20 +1115,20 @@
                     <td style="${tdS} font-weight: bold; ${ext ? 'color: #9333ea; font-style: italic;' : 'color: #1d4ed8;'}">${ext || formatCurrency(net)}</td></tr>`;
                 };
 
-                addRow('Caché', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
-                if (resDia.dataOriginal.km > 0) addRow('Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
-                if (resDia.dataOriginal.dieta > 0) addRow('Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
-                if (resDia.dataOriginal.alquiler > 0) addRow('Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
+                addRow('Caixet', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                if (resDia.dataOriginal.km > 0) addRow('Quilometratge', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.dieta > 0) addRow('Dietes', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.alquiler > 0) addRow('Lloguer Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
             });
 
             if (globalSimulationResult.gastosRes) {
                 const g = globalSimulationResult.gastosRes;
-                html += `<tr style="background-color: #f8fafc;"><td style="padding: 8px; font-weight: bold; border-bottom: 1px solid #cbd5e1;">Gastos Justificados</td><td style="${tdS}">${formatCurrency(g.bruto)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(g.comision)}</td><td style="${tdS}">${formatCurrency(g.baseLiq)}</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} font-weight: bold; color: #1d4ed8;">${formatCurrency(g.aLiquidar)}</td></tr>`;
+                html += `<tr style="background-color: #f8fafc;"><td style="padding: 8px; font-weight: bold; border-bottom: 1px solid #cbd5e1;">Despeses Justificades</td><td style="${tdS}">${formatCurrency(g.bruto)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(g.comision)}</td><td style="${tdS}">${formatCurrency(g.baseLiq)}</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} font-weight: bold; color: #1d4ed8;">${formatCurrency(g.aLiquidar)}</td></tr>`;
             }
 
             if (globalSimulationResult.derechosSim && globalSimulationResult.derechosSim.length > 0) {
                 globalSimulationResult.derechosSim.forEach(d => {
-                    html += `<tr style="background-color: #eef2ff;"><td style="padding: 8px; font-weight: bold; color: #3730a3; border-bottom: 1px solid #cbd5e1;">${d.nombre} (${d.irpfPct}% Retención)</td><td style="${tdS}">${formatCurrency(d.bruto)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(d.comision)}</td><td style="${tdS}">${formatCurrency(d.baseLiq)}</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(d.irpfImporte)}</td><td style="${tdS} font-weight: bold; color: #1d4ed8;">${formatCurrency(d.aLiquidar)}</td></tr>`;
+                    html += `<tr style="background-color: #eef2ff;"><td style="padding: 8px; font-weight: bold; color: #3730a3; border-bottom: 1px solid #cbd5e1;">${d.nombre} (${d.irpfPct}% Retenció)</td><td style="${tdS}">${formatCurrency(d.bruto)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(d.comision)}</td><td style="${tdS}">${formatCurrency(d.baseLiq)}</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(d.irpfImporte)}</td><td style="${tdS} font-weight: bold; color: #1d4ed8;">${formatCurrency(d.aLiquidar)}</td></tr>`;
                 });
             }
 
@@ -1137,16 +1137,16 @@
 
             if (globalSimulationResult.taimanRes) {
                 const tr = globalSimulationResult.taimanRes;
-                html += `<h3 style="color: #1e293b; font-size: 16px; margin-top: 20px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglose Liquidación Taiman</h3><table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;"><thead><tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;"><th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Concepto</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Importe</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Comisión</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Base liquidable</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">${APP_CONFIG.tasas.irpfTaiman * 100}% IRPF</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">A liquidar</th></tr></thead><tbody><tr style="background-color: #faf5ff;"><td style="padding: 10px 8px; font-weight: bold; color: #9333ea; text-transform: uppercase;">Liquidación Taiman</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.importe)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.comision)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.baseLiq)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.irpf)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #7e22ce; font-size: 14px;">${formatCurrency(tr.aLiquidar)}</td></tr></tbody></table>`;
+                html += `<h3 style="color: #1e293b; font-size: 16px; margin-top: 20px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Desglossament Liquidació Taiman</h3><table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;"><thead><tr style="background-color: #f8fafc; color: #475569; text-transform: uppercase; font-size: 11px;"><th style="padding: 8px; border-bottom: 2px solid #cbd5e1;">Concepte</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Import</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Comissió</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">Base liquidable</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">${APP_CONFIG.tasas.irpfTaiman * 100}% IRPF</th><th style="padding: 8px; border-bottom: 2px solid #cbd5e1; text-align: right;">A liquidar</th></tr></thead><tbody><tr style="background-color: #faf5ff;"><td style="padding: 10px 8px; font-weight: bold; color: #9333ea; text-transform: uppercase;">Liquidació Taiman</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.importe)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.comision)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold;">${formatCurrency(tr.baseLiq)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #dc2626;">- ${formatCurrency(tr.irpf)}</td><td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #7e22ce; font-size: 14px;">${formatCurrency(tr.aLiquidar)}</td></tr></tbody></table>`;
             }
 
             html += `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center;">
-                        <p style="font-size: 11px; color: #94a3b8; font-style: italic; margin: 0;">El resultado que se obtiene a través de este simulador no es vinculante para Espacio Arte Zenit, ni genera derecho alguno a su favor.</p>
+                        <p style="font-size: 11px; color: #94a3b8; font-style: italic; margin: 0;">El resultat que s'obté a través d'aquest simulador no és vinculant per a Espacio Arte Zenit, ni genera cap dret al seu favor.</p>
                      </div>`;
 
             const tempDiv = document.createElement('div'); tempDiv.style.position = 'absolute'; tempDiv.style.left = '-9999px'; tempDiv.innerHTML = html + `</div>`; document.body.appendChild(tempDiv);
             const range = document.createRange(); range.selectNodeContents(tempDiv); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
-            try { document.execCommand('copy'); const btn = document.getElementById('btnCopyEmail'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check text-green-500"></i> ¡Copiado con éxito!'; setTimeout(() => btn.innerHTML = originalHTML, 2500); } catch (err) { alert('Hubo un problema al copiar.'); }
+            try { document.execCommand('copy'); const btn = document.getElementById('btnCopyEmail'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check text-green-500"></i> Copiat amb èxit!'; setTimeout(() => btn.innerHTML = originalHTML, 2500); } catch (err) { alert('Hi ha hagut un problema al copiar.'); }
             document.body.removeChild(tempDiv); selection.removeAllRanges();
         }
 
@@ -1157,7 +1157,7 @@
             const contenedoresTabla = element.querySelectorAll('.rounded-xl.border'); contenedoresTabla.forEach(t => t.classList.remove('rounded-xl', 'border', 'border-slate-200', 'shadow-sm'));
             element.classList.add('px-4', 'pb-4'); btnPDF.classList.add('hidden'); if (btnEmail) btnEmail.classList.add('hidden'); if (btnVolver) btnVolver.classList.add('hidden'); summary.classList.remove('hidden');
 
-            const opt = { margin: [10, 15, 10, 15], filename: 'Simulación_Liquidacion.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: 'css', avoid: '.break-inside-avoid' } };
+            const opt = { margin: [10, 15, 10, 15], filename: 'Simulacio_Liquidacio.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }, pagebreak: { mode: 'css', avoid: '.break-inside-avoid' } };
             const restaurarVista = () => { btnPDF.classList.remove('hidden'); if (btnEmail) btnEmail.classList.remove('hidden'); if (btnVolver) btnVolver.classList.remove('hidden'); summary.classList.add('hidden'); element.classList.remove('px-4', 'pb-4'); tablasScroll.forEach(t => t.classList.add('overflow-x-auto')); contenedoresTabla.forEach(t => t.classList.add('rounded-xl', 'border', 'border-slate-200', 'shadow-sm')); };
 
             setTimeout(() => { html2pdf().set(opt).from(element).save().then(restaurarVista).catch((e) => { console.error(e); restaurarVista(); }); }, 500); 
