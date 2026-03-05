@@ -18,6 +18,18 @@
             appearance: textfield;
             -moz-appearance: textfield;
         }
+        
+        /* Igualar perfectamente el color y opacidad de los campos bloqueados en todos los navegadores */
+        input:disabled, select:disabled {
+            opacity: 1 !important;
+            -webkit-text-fill-color: #475569 !important; /* equivalente a text-slate-600 */
+            color: #475569 !important;
+        }
+
+        /* Forzar el centrado del texto seleccionado en un dropdown para que sea idéntico al de un input */
+        select.text-center {
+            text-align-last: center;
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
@@ -44,13 +56,13 @@
                         <i class="fa-solid fa-building text-blue-500"></i> Sociedad:
                     </label>
                     <select id="selectEmpresaAvanzado" onchange="cambiarSociedad()" class="bg-white text-slate-800 rounded-md border border-slate-300 px-3 py-1.5 focus:ring-2 focus:ring-blue-500 font-semibold cursor-pointer outline-none w-40 shadow-sm">
-                        <option value="Zenit">Espacio Arte Zenit</option>
+                        <option value="Espacio Arte Zenit">Espacio Arte Zenit</option>
                         <option value="Actura Art Global">Actura Art Global</option>
                         <option value="Actura 12">Actura 12</option>
                         <option value="Actura Madrid">Actura Madrid</option>
                         <option value="Actura Artsvalencia">Actura Artsvalencia</option>
-                        <option value="Actura Levante">Actura Madrid</option>
-                        <option value="Arte y Sonido Formación">Actura Artsvalencia</option>
+                        <option value="Actura Levante">Actura Levante</option>
+                        <option value="Arte y Sonido Formación">Arte y Sonido Formación</option>
                         <option value="Anónimo">Anónimo</option>
                     </select>
                 </div>
@@ -495,8 +507,8 @@
         // CONFIGURACIÓN GLOBAL DE LA APLICACIÓN (Diccionario Centralizado)
         // =========================================================================
         const APP_CONFIG = {
-            // Valor por defecto modificado a 'Zenit' para sincronizar con la selección inicial
-            nombreSociedadPrincipal: 'Zenit',
+            // Valor por defecto generico '' o modificado a 'Espacio Arte Zenit' para sincronizar con la selección inicial
+            nombreSociedadPrincipal: 'Espacio Arte Zenit',
             
             configuracionPI: {
                 multitramoActivo: false
@@ -1193,8 +1205,17 @@
                         <div class="text-right tabular-nums font-bold ${ext ? 'text-purple-600 italic' : 'text-blue-700'}">${ext || formatCurrency(n)}</div>
                     </div>`;
 
-                html += trGen('fa-microphone', 'Caché', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
-                if (resDia.dataOriginal.km > 0) html += trGen('fa-car', 'Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                let irpfStr = params.irpf.toString().replace('.', ',');
+                html += trGen('fa-microphone', `Caché <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Retención)</span>`, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                
+                if (resDia.dataOriginal.km > 0) {
+                    let kmCalculadoNum = resDia.dataOriginal.km / APP_CONFIG.tasas.kilometraje;
+                    if (Math.abs(kmCalculadoNum - inputKilometraje) < 0.05) kmCalculadoNum = inputKilometraje;
+                    let kmStr = kmCalculadoNum.toFixed(2).replace(/\.00$/, '').replace('.', ',');
+                    let kmTitle = `Kilometraje <span class="text-[10px] text-slate-500 font-normal ml-1">(${kmStr} km)</span>`;
+                    html += trGen('fa-car', kmTitle, resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                }
+                
                 if (resDia.dataOriginal.dieta > 0) html += trGen('fa-utensils', 'Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
                 if (resDia.dataOriginal.alquiler > 0) html += trGen('fa-guitar', 'Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
                 
@@ -1274,6 +1295,11 @@
         function copiarPortapapeles() {
             if (!globalSimulationResult) return;
 
+            // Extraemos el IRPF actual limpio para pasarlo nativamente al clipboard sin HTML extra en las descripciones
+            const currentIRPF = parseFloat(document.getElementById('inputIRPF').value) || APP_CONFIG.tasas.irpfGeneralMinimo;
+            const irpfStrClip = currentIRPF.toString().replace('.', ',');
+            const inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+
             // Eliminamos los "height" fijos que cortaban el texto en Excel.
             // Añadimos anchos (width) explícitos en las cabeceras para que los emails no desestructuren las columnas.
             const thS = "padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: right; white-space: nowrap;";
@@ -1313,8 +1339,15 @@
                     <td style="${tdS} font-weight: bold; ${ext ? 'color: #9333ea; font-style: italic;' : 'color: #1d4ed8;'}">${ext || formatCurrency(net)}</td></tr>`;
                 };
 
-                addRow('Caché', resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
-                if (resDia.dataOriginal.km > 0) addRow('Kilometraje', resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                addRow(`Caché (${irpfStrClip}% Retención)`, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                
+                if (resDia.dataOriginal.km > 0) {
+                    let kmCalculadoNum = resDia.dataOriginal.km / APP_CONFIG.tasas.kilometraje;
+                    if (Math.abs(kmCalculadoNum - inputKilometraje) < 0.05) kmCalculadoNum = inputKilometraje;
+                    let kmStr = kmCalculadoNum.toFixed(2).replace(/\.00$/, '').replace('.', ',');
+                    addRow(`Kilometraje (${kmStr} km)`, resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
+                }
+                
                 if (resDia.dataOriginal.dieta > 0) addRow('Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
                 if (resDia.dataOriginal.alquiler > 0) addRow('Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
             });
