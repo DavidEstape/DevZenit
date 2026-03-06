@@ -149,7 +149,7 @@
                             <i class="fa-solid fa-user-tie text-purple-600 text-xl"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-purple-800 mb-1">Modo Factura Autónomo (0 Días de Alta)</h4>
+                            <h4 class="text-sm font-bold text-purple-800 mb-1">Modo Factura Autónomo/Sociedad (0 Días de Alta)</h4>
                             <p class="text-xs text-purple-700 m-0">No se aplicarán deducciones de Seguridad Social. Los apartados de Dietas y Kilometraje se han deshabilitado.</p>
                         </div>
                     </div>
@@ -501,13 +501,6 @@
                     </div>
                 </div>
 
-                <!-- DISCLAIMER -->
-                <div class="mt-8 pt-5 border-t border-slate-200 text-center break-inside-avoid">
-                    <p class="text-xs text-slate-400 italic" id="disclaimerLegalText">
-                        El resultado que se obtiene a través de este simulador no es vinculante, ni genera derecho alguno a su favor.
-                    </p>
-                </div>
-
             </div>
 
         </div>
@@ -546,18 +539,29 @@
                 { id: 'ext_pernocta', nombre: 'Pernocta fuera territorio español', precio: 96.1578 }
             ],
             materiales: [
-                { id: 'altavoces', nombre: 'Altavoces', precio: 105.2632 },
-                { id: 'bajos', nombre: 'Bajos y complementos', precio: 73.6842 },
-                { id: 'bat_acustica', nombre: 'Batería acústica', precio: 105.2632 },
-                { id: 'bat_electrica', nombre: 'Batería eléctrica', precio: 105.2632 },
-                { id: 'cables', nombre: 'Cables', precio: 5.2632 },
-                { id: 'clarinete', nombre: 'Clarinete', precio: 84.2105 },
-                { id: 'contrabajo', nombre: 'Contrabajo', precio: 105.2632 },
-                { id: 'guit_acustica', nombre: 'Guitarra acústica', precio: 73.6842 },
-                { id: 'guit_clasica', nombre: 'Guitarra clásica', precio: 63.1579 },
-                { id: 'guit_electrica', nombre: 'Guitarra eléctrica', precio: 105.2632 },
-                { id: 'microfono', nombre: 'Micrófono', precio: 52.6316 },
-                { id: 'ordenador', nombre: 'Ordenador', precio: 63.1579 }
+                { id: 'altavoces', nombre: 'Altavoces', precio: 105.26 },
+                { id: 'bajos', nombre: 'Bajos y complementos', precio: 73.68 },
+                { id: 'bat_acustica', nombre: 'Batería acústica', precio: 105.26 },
+                { id: 'bat_electrica', nombre: 'Batería eléctrica', precio: 63.16 },
+                { id: 'cables', nombre: 'Cables y adaptadores', precio: 5.26 },
+                { id: 'clarinete', nombre: 'Clarinete', precio: 84.21 },
+                { id: 'contrabajo', nombre: 'Contrabajo', precio: 105.26 },
+                { id: 'guit_acustica', nombre: 'Guitarra acústica', precio: 73.68 },
+                { id: 'guit_clasica', nombre: 'Guitarra clásica', precio: 63.16 },
+                { id: 'guit_electrica', nombre: 'Guitarra eléctrica', precio: 105.26 },
+                { id: 'mesa_mezclas', nombre: 'Mesa de mezclas', precio: 157.89 },
+                { id: 'microfono', nombre: 'Micrófono', precio: 52.63 },
+                { id: 'ordenador', nombre: 'Ordenador', precio: 63.16 },
+                { id: 'piano', nombre: 'Piano', precio: 157.89 },
+                { id: 'piano_sup', nombre: 'Piano superior', precio: 263.16 },
+                { id: 'saxofon', nombre: 'Saxofón', precio: 84.21 },
+                { id: 'subwoofer', nombre: 'Subwoofer', precio: 105.26 },
+                { id: 'trombon', nombre: 'Trombón', precio: 63.16 },
+                { id: 'trompeta', nombre: 'Trompeta', precio: 105.26 },
+                { id: 'ukelele', nombre: 'Ukelele', precio: 26.32 },
+                { id: 'viola', nombre: 'Viola', precio: 63.16 },
+                { id: 'violin', nombre: 'Violín', precio: 63.16 },
+                { id: 'violonchelo', nombre: 'Violonchelo', precio: 84.21 }
             ],
             ssTramos: [
                 { max: 75.00, cuota: 21.00 },
@@ -607,8 +611,6 @@
             APP_CONFIG.nombreSociedadPrincipal = val === 'Anónimo' ? '' : val;
             
             document.getElementById('tituloLiquidacionPrincipal').innerHTML = `<i class="fa-solid fa-file-invoice-dollar text-slate-400"></i> Desglose de la Liquidación ${getNombreSociedad()}`;
-            const txtLegal = APP_CONFIG.nombreSociedadPrincipal ? APP_CONFIG.nombreSociedadPrincipal : "la entidad gestora";
-            document.getElementById('disclaimerLegalText').innerHTML = `El resultado que se obtiene a través de este simulador no es vinculante para ${txtLegal}, ni genera derecho alguno a su favor.`;
             
             if (!document.getElementById('resultsSection').classList.contains('hidden')) {
                 calcular();
@@ -634,28 +636,41 @@
             const selectPI = document.getElementById('selectIRPFPI');
             selectPI.innerHTML = '';
             
+            let dias = parseInt(document.getElementById('inputDias').value);
+            let isAutonomo = (isNaN(dias) || dias < 0 ? 0 : dias) === 0;
+            
             if (APP_CONFIG.configuracionPI.multitramoActivo) {
                 const optBajo = document.createElement('option');
                 optBajo.value = APP_CONFIG.tasas.irpfPI.bajo;
                 optBajo.textContent = `${APP_CONFIG.tasas.irpfPI.bajo}% Retención IRPF *`;
                 selectPI.appendChild(optBajo);
-                
-                const optAlto = document.createElement('option');
-                optAlto.value = APP_CONFIG.tasas.irpfPI.alto;
-                optAlto.textContent = `${APP_CONFIG.tasas.irpfPI.alto}% Retención IRPF`;
-                selectPI.appendChild(optAlto);
-                
-                document.getElementById('disclaimerPIContainer').classList.remove('hidden');
+            }
+            
+            const optAlto = document.createElement('option');
+            optAlto.value = APP_CONFIG.tasas.irpfPI.alto;
+            optAlto.textContent = `${APP_CONFIG.tasas.irpfPI.alto}% Retención IRPF`;
+            selectPI.appendChild(optAlto);
+            
+            if (isAutonomo) {
+                const optEmpresa = document.createElement('option');
+                optEmpresa.value = 19;
+                optEmpresa.textContent = `19% Retención (Empresas / IS)`;
+                selectPI.appendChild(optEmpresa);
+            }
+            
+            const hasMultipleOptions = selectPI.options.length > 1;
+            
+            if (hasMultipleOptions) {
                 document.getElementById('chevronPI').classList.remove('hidden');
                 selectPI.disabled = false;
                 selectPI.classList.remove('bg-slate-100', 'text-slate-600', 'cursor-not-allowed', 'shadow-inner');
                 selectPI.classList.add('bg-white', 'text-slate-700', 'cursor-pointer', 'shadow-sm');
+                if (APP_CONFIG.configuracionPI.multitramoActivo) {
+                    document.getElementById('disclaimerPIContainer').classList.remove('hidden');
+                } else {
+                    document.getElementById('disclaimerPIContainer').classList.add('hidden');
+                }
             } else {
-                const optAlto = document.createElement('option');
-                optAlto.value = APP_CONFIG.tasas.irpfPI.alto;
-                optAlto.textContent = `${APP_CONFIG.tasas.irpfPI.alto}% Retención IRPF`;
-                selectPI.appendChild(optAlto);
-                
                 document.getElementById('disclaimerPIContainer').classList.add('hidden');
                 document.getElementById('chevronPI').classList.add('hidden');
                 selectPI.disabled = true;
@@ -678,9 +693,16 @@
             const btnDieta = document.getElementById('btnAñadirDieta');
             const iconKm = document.getElementById('iconKm');
             const iconDieta = document.getElementById('iconDieta');
+            const inputIRPF = document.getElementById('inputIRPF');
             
             if (isAutonomo) {
                 banner.classList.remove('hidden');
+                
+                inputIRPF.min = 0;
+                if (parseFloat(inputIRPF.value) === APP_CONFIG.tasas.irpfGeneralMinimo) {
+                    inputIRPF.value = 15;
+                }
+                document.getElementById('errorIRPF').textContent = `El IRPF mínimo es 0%.`;
                 
                 // Block Kilometraje
                 inputKm.value = '';
@@ -704,6 +726,12 @@
             } else {
                 banner.classList.add('hidden');
                 
+                inputIRPF.min = APP_CONFIG.tasas.irpfGeneralMinimo;
+                if (parseFloat(inputIRPF.value) < APP_CONFIG.tasas.irpfGeneralMinimo || parseFloat(inputIRPF.value) === 15) {
+                    inputIRPF.value = APP_CONFIG.tasas.irpfGeneralMinimo;
+                }
+                document.getElementById('errorIRPF').textContent = `El IRPF mínimo es ${APP_CONFIG.tasas.irpfGeneralMinimo}%.`;
+                
                 inputKm.disabled = false;
                 inputKm.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
                 iconKm.classList.remove('text-slate-300');
@@ -718,6 +746,8 @@
                 iconDieta.classList.remove('text-slate-300');
                 iconDieta.classList.add('text-slate-400');
             }
+            
+            actualizarInterfazPI();
         }
 
         function initApp() {
@@ -962,7 +992,7 @@
             let cacheMinimo = params.isAutonomo ? 0 : APP_CONFIG.limites.cacheMinimoDiario;
             
             let bucket = round2(importeBrutoPrueba - (iterDias * cacheMinimo));
-            let dData = Array.from({length: iterDias}, (_, i) => ({ dia: params.isAutonomo ? 'Autónomo' : i+1, cache: cacheMinimo, km: 0, dieta: 0, alquiler: 0 }));
+            let dData = Array.from({length: iterDias}, (_, i) => ({ dia: params.isAutonomo ? 'Autónomo/Sociedad' : i+1, cache: cacheMinimo, km: 0, dieta: 0, alquiler: 0 }));
 
             // 1. Kilometraje
             if (params.km > 0 && !params.isAutonomo) {
@@ -1107,7 +1137,11 @@
             let calcDias = isAutonomo ? 1 : inputDias;
 
             let inputPrincipal = parseFloat(document.getElementById('inputImportePrincipal').value) || 0;
-            let inputIRPF = Math.max(APP_CONFIG.tasas.irpfGeneralMinimo, parseFloat(document.getElementById('inputIRPF').value) || APP_CONFIG.tasas.irpfGeneralMinimo);
+            
+            let rawIRPF = parseFloat(document.getElementById('inputIRPF').value);
+            let minIRPF = isAutonomo ? 0 : APP_CONFIG.tasas.irpfGeneralMinimo;
+            let inputIRPF = isNaN(rawIRPF) ? minIRPF : Math.max(minIRPF, rawIRPF);
+            
             let inputKilometraje = isAutonomo ? 0 : (parseFloat(document.getElementById('inputKilometraje').value) || 0);
             let inputGastos = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
             let totalAlquiler = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
@@ -1231,7 +1265,7 @@
                 derechosSummary = arrayDerechos.map(d => `${d.nombre}: ${formatCurrency(d.importe)} (IRPF ${d.irpf}%)`).join('<br>');
             }
 
-            const diasSummaryStr = isAutonomo ? '0 (Modo Autónomo)' : inputDias;
+            const diasSummaryStr = isAutonomo ? '0 (Modo Autónomo/Sociedad)' : inputDias;
             const kmSummaryStr = isAutonomo ? '0 km (No aplica)' : `${inputKilometraje} km`;
             const dietasSummaryStr = isAutonomo ? 'No aplica' : (listaDietas.length ? listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>') : 'Ninguna añadida');
 
@@ -1254,8 +1288,8 @@
                 const dayBlock = document.createElement('div');
                 dayBlock.className = 'break-inside-avoid flex flex-col border-b border-slate-200 last:border-0';
                 
-                let isDiaAutonomo = resDia.dataOriginal.dia === 'Autónomo';
-                let dayTitle = isDiaAutonomo ? 'Factura Única (Autónomo)' : `Día ${resDia.dataOriginal.dia}`;
+                let isDiaAutonomo = resDia.dataOriginal.dia === 'Autónomo/Sociedad';
+                let dayTitle = isDiaAutonomo ? 'Factura Única (Autónomo/Sociedad)' : `Día ${resDia.dataOriginal.dia}`;
                 let iconTitle = isDiaAutonomo ? 'fa-user-tie' : 'fa-calendar-days';
                 
                 let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-solid ${iconTitle} mr-2"></i>${dayTitle}</div><div class="flex flex-col divide-y divide-slate-100">`;
@@ -1390,8 +1424,8 @@
                     <tbody>`;
 
             globalSimulationResult.dayResults.forEach(resDia => {
-                let isDiaAutonomo = resDia.dataOriginal.dia === 'Autónomo';
-                let dayTitleClip = isDiaAutonomo ? 'Factura Única (Autónomo)' : `Día ${resDia.dataOriginal.dia}`;
+                let isDiaAutonomo = resDia.dataOriginal.dia === 'Autónomo/Sociedad';
+                let dayTitleClip = isDiaAutonomo ? 'Factura Única (Autónomo/Sociedad)' : `Día ${resDia.dataOriginal.dia}`;
                 html += `<tr><td colspan="7" style="padding: 10px 16px; font-weight: bold; color: #1e40af; background-color: #eff6ff; border-bottom: 1px solid #cbd5e1; text-align: left;">${dayTitleClip}</td></tr>`;
                 
                 const addRow = (tit, b, c, bl, ss, irpf, net, ext) => {
@@ -1483,13 +1517,7 @@
                         </tr>`;
             }
 
-            const txtLegal = APP_CONFIG.nombreSociedadPrincipal ? APP_CONFIG.nombreSociedadPrincipal : "la entidad gestora";
-            html += `<tr>
-                        <td colspan="7" style="padding: 16px; text-align: center; font-size: 11px; color: #94a3b8; font-style: italic; border: none; background-color: #ffffff;">
-                            El resultado que se obtiene a través de este simulador no es vinculante para ${txtLegal}, ni genera derecho alguno a su favor.
-                        </td>
-                    </tr>
-                </tbody>
+            html += `</tbody>
             </table>
             </div>`;
 
