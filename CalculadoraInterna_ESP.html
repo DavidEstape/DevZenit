@@ -20,9 +20,9 @@
         }
         
         /* Igualar perfectamente el color y opacidad de los campos bloqueados en todos los navegadores */
-        input:disabled, select:disabled {
+        input:disabled, select:disabled, button:disabled {
             opacity: 1 !important;
-            -webkit-text-fill-color: #475569 !important; /* equivalente a text-slate-600 */
+            -webkit-text-fill-color: #475569 !important;
             color: #475569 !important;
         }
 
@@ -123,7 +123,7 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fa-regular fa-calendar text-slate-400"></i>
                                 </div>
-                                <input type="number" id="inputDias" value="1" min="1" step="1" required oninput="renderDietas(); ocultarResultados();"
+                                <input type="number" id="inputDias" value="1" min="0" step="1" required oninput="handleDiasChange(); renderDietas(); ocultarResultados();"
                                     class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                             </div>
                         </div>
@@ -142,6 +142,17 @@
                             <p id="errorIRPF" class="text-red-500 text-xs mt-1 hidden"></p>
                         </div>
                     </div>
+                    
+                    <!-- BANNER AUTÓNOMO (Oculto por defecto) -->
+                    <div id="autonomoBanner" class="hidden mb-6 bg-purple-50 border border-purple-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm transition-all duration-300">
+                        <div class="bg-purple-100 p-2.5 rounded-full flex-shrink-0 flex items-center justify-center">
+                            <i class="fa-solid fa-user-tie text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-purple-800 mb-1">Modo Factura Autónomo (0 Días de Alta)</h4>
+                            <p class="text-xs text-purple-700 m-0">No se aplicarán deducciones de Seguridad Social. Los apartados de Dietas y Kilometraje se han deshabilitado.</p>
+                        </div>
+                    </div>
 
                     <!-- BLOQUE 2: GASTOS Y KILOMETRAJE -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 mb-6">
@@ -151,7 +162,7 @@
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-car text-slate-400"></i>
+                                    <i class="fa-solid fa-car text-slate-400" id="iconKm"></i>
                                 </div>
                                 <input type="number" id="inputKilometraje" placeholder="0,00" min="0" step="0.01" oninput="toggleCPFields(); ocultarResultados();"
                                     class="pl-9 pr-12 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
@@ -189,7 +200,7 @@
 
                         <div class="md:col-span-5">
                             <label for="inputGastosJustificados" class="block text-sm font-medium text-slate-700 mb-2 truncate">
-                                Gastos justificados
+                                Gastos justificados <span class="text-[10px] text-slate-400 font-normal">(Suplidos)</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -208,7 +219,7 @@
                     <div class="mb-6 bg-white border border-slate-200 rounded-xl shadow-sm transition-all duration-300">
                         <div class="p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4 border-b border-slate-100">
                             <div class="flex items-center gap-2 w-full lg:w-56 flex-shrink-0">
-                                <i class="fa-solid fa-utensils text-slate-400"></i>
+                                <i class="fa-solid fa-utensils text-slate-400" id="iconDieta"></i>
                                 <h3 class="text-sm font-bold text-slate-700">Añadir dietas</h3>
                             </div>
 
@@ -225,7 +236,7 @@
                                 <div class="flex gap-2 w-full sm:w-auto flex-shrink-0">
                                     <input type="number" id="inputDietaQty" value="1" min="1" step="1" title="Nº Días"
                                         class="w-16 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
-                                    <button type="button" onclick="agregarDieta()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm flex-shrink-0">
+                                    <button type="button" id="btnAñadirDieta" onclick="agregarDieta()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm flex-shrink-0">
                                         <i class="fa-solid fa-plus text-xs"></i> Añadir
                                     </button>
                                 </div>
@@ -504,10 +515,9 @@
 
     <script>
         // =========================================================================
-        // CONFIGURACIÓN GLOBAL DE LA APLICACIÓN (Diccionario Centralizado)
+        // CONFIGURACIÓN GLOBAL DE LA APLICACIÓN
         // =========================================================================
         const APP_CONFIG = {
-            // Valor por defecto generico '' o modificado a 'Espacio Arte Zenit' para sincronizar con la selección inicial.
             nombreSociedadPrincipal: 'Espacio Arte Zenit',
             
             configuracionPI: {
@@ -520,9 +530,9 @@
                 comisionAgencia: 0.05,
                 comisionTaiman: 0.05,
                 irpfTaiman: 0.07,
-                irpfImagen: 19, // Expresado en %
-                irpfPI: { bajo: 7, alto: 15 }, // Expresado en %
-                irpfGeneralMinimo: 2, // Expresado en %
+                irpfImagen: 19,
+                irpfPI: { bajo: 7, alto: 15 },
+                irpfGeneralMinimo: 2,
                 kilometraje: 0.2737
             },
             limites: {
@@ -562,7 +572,6 @@
             ]
         };
 
-        // Formateador de moneda para euros garantizando separador de miles (ej: 3.000,00 €)
         function formatCurrency(num) {
             if (num === null || isNaN(num)) return "0,00 €";
             let isNegative = num < 0;
@@ -581,7 +590,6 @@
         let listaMaterial = [];
         let listaDietas = [];
 
-        // Funciones del Panel Avanzado
         function inicializarPanelAvanzado() {
             const selectEmpresa = document.getElementById('selectEmpresaAvanzado');
             if (!APP_CONFIG.nombreSociedadPrincipal) {
@@ -640,7 +648,6 @@
                 document.getElementById('disclaimerPIContainer').classList.remove('hidden');
                 document.getElementById('chevronPI').classList.remove('hidden');
                 selectPI.disabled = false;
-                // Devolvemos el aspecto clickeable y el fondo blanco
                 selectPI.classList.remove('bg-slate-100', 'text-slate-600', 'cursor-not-allowed', 'shadow-inner');
                 selectPI.classList.add('bg-white', 'text-slate-700', 'cursor-pointer', 'shadow-sm');
             } else {
@@ -652,7 +659,6 @@
                 document.getElementById('disclaimerPIContainer').classList.add('hidden');
                 document.getElementById('chevronPI').classList.add('hidden');
                 selectPI.disabled = true;
-                // Retiramos el blanco y aplicamos el estilo bloqueado idéntico al de arriba
                 selectPI.classList.remove('bg-white', 'text-slate-700', 'cursor-pointer', 'shadow-sm');
                 selectPI.classList.add('bg-slate-100', 'text-slate-600', 'cursor-not-allowed', 'shadow-inner');
             }
@@ -660,9 +666,61 @@
             handlePIChange();
         }
 
-        // Inicializador automático para inyectar configuración en HTML
+        function handleDiasChange() {
+            let dias = parseInt(document.getElementById('inputDias').value);
+            if (isNaN(dias) || dias < 0) dias = 0;
+            const isAutonomo = dias === 0;
+            
+            const banner = document.getElementById('autonomoBanner');
+            const inputKm = document.getElementById('inputKilometraje');
+            const selectDieta = document.getElementById('selectDieta');
+            const inputDietaQty = document.getElementById('inputDietaQty');
+            const btnDieta = document.getElementById('btnAñadirDieta');
+            const iconKm = document.getElementById('iconKm');
+            const iconDieta = document.getElementById('iconDieta');
+            
+            if (isAutonomo) {
+                banner.classList.remove('hidden');
+                
+                // Block Kilometraje
+                inputKm.value = '';
+                inputKm.disabled = true;
+                inputKm.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                iconKm.classList.remove('text-slate-400');
+                iconKm.classList.add('text-slate-300');
+                toggleCPFields(); 
+                
+                // Block Dietas
+                selectDieta.disabled = true;
+                selectDieta.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                inputDietaQty.disabled = true;
+                inputDietaQty.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                btnDieta.disabled = true;
+                btnDieta.classList.add('opacity-50', 'cursor-not-allowed');
+                iconDieta.classList.remove('text-slate-400');
+                iconDieta.classList.add('text-slate-300');
+                
+                listaDietas = [];
+            } else {
+                banner.classList.add('hidden');
+                
+                inputKm.disabled = false;
+                inputKm.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                iconKm.classList.remove('text-slate-300');
+                iconKm.classList.add('text-slate-400');
+                
+                selectDieta.disabled = false;
+                selectDieta.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                inputDietaQty.disabled = false;
+                inputDietaQty.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                btnDieta.disabled = false;
+                btnDieta.classList.remove('opacity-50', 'cursor-not-allowed');
+                iconDieta.classList.remove('text-slate-300');
+                iconDieta.classList.add('text-slate-400');
+            }
+        }
+
         function initApp() {
-            // Dietas
             const selectDieta = document.getElementById('selectDieta');
             APP_CONFIG.dietas.forEach(d => {
                 const opt = document.createElement('option');
@@ -671,7 +729,6 @@
                 selectDieta.appendChild(opt);
             });
 
-            // Materiales (se insertan antes del "Otros")
             const selectMat = document.getElementById('selectMaterial');
             const optionOtros = selectMat.querySelector('option[value="custom"]');
             APP_CONFIG.materiales.forEach(mat => {
@@ -681,31 +738,23 @@
                 selectMat.insertBefore(opt, optionOtros);
             });
 
-            // Configurar Textos e Inputs estáticos desde APP_CONFIG
             document.getElementById('inputIRPF').min = APP_CONFIG.tasas.irpfGeneralMinimo;
             document.getElementById('inputIRPF').value = APP_CONFIG.tasas.irpfGeneralMinimo;
             document.getElementById('errorIRPF').textContent = `El IRPF mínimo es ${APP_CONFIG.tasas.irpfGeneralMinimo}%.`;
-            document.getElementById('errorImporteBruto').textContent = `El importe mínimo es ${APP_CONFIG.limites.cacheMinimoDiario}€.`;
             
             document.getElementById('inputImagenIrpfLabel').value = `${APP_CONFIG.tasas.irpfImagen}% Retención IRPF`;
             document.getElementById('disclaimerPIText').innerHTML = `<span class="text-amber-500 font-bold">*</span> 7% se puede aplicar si las rentas por Propiedad Intelectual no superan los ${APP_CONFIG.limites.umbralPI.toLocaleString('es-ES')}€ anuales.`;
             document.getElementById('taimanIRPFHeader').textContent = `${Math.round(APP_CONFIG.tasas.irpfTaiman * 100)}% IRPF`;
 
-            // Inicializar Panel Avanzado
             inicializarPanelAvanzado();
-
-            // Configurar IRPF P.I. según panel avanzado
             actualizarInterfazPI();
-
-            // Sincronizar nombres iniciales
             cambiarSociedad();
+            handleDiasChange();
         }
 
-        // Llamar inicializador al cargar
         document.addEventListener('DOMContentLoaded', initApp);
 
         function handlePIChange() {
-            // Eliminamos la orden de ocultar la tabla de resultados para no interrumpir el flujo visual
             const select = document.getElementById('selectIRPFPI');
             const disclaimer = document.getElementById('disclaimerPIContainer');
             if (select && disclaimer && APP_CONFIG.configuracionPI.multitramoActivo) {
@@ -756,7 +805,8 @@
         }
 
         function toggleCPFields() {
-            const isEnabled = parseFloat(document.getElementById('inputKilometraje').value) > 0;
+            const valKm = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            const isEnabled = valKm > 0;
             ['inputCpOrigen', 'inputCpDestino'].forEach(id => {
                 const el = document.getElementById(id);
                 el.disabled = !isEnabled;
@@ -778,9 +828,12 @@
         }
 
         function agregarDieta() {
+            const dias = parseInt(document.getElementById('inputDias').value);
+            if (isNaN(dias) || dias === 0) return; // Protección extra modo autónomo
+            
             const select = document.getElementById('selectDieta');
             const qtyInput = document.getElementById('inputDietaQty');
-            const maxDias = parseInt(document.getElementById('inputDias').value) || 1;
+            const maxDias = dias || 1;
             
             if (select.value === '' || parseInt(qtyInput.value) < 1) return;
             const currentDias = listaDietas.reduce((acc, d) => acc + d.days, 0);
@@ -881,16 +934,18 @@
         // --- FUNCIONES DE CÁLCULO ESTRICTO ---
         function round2(num) { return Math.round((num + Number.EPSILON) * 100) / 100; }
 
-        function calcularDia(bruto, porcentajeIRPF) {
+        function calcularDia(bruto, porcentajeIRPF, isAutonomo = false) {
             bruto = round2(bruto);
             const comision = round2(bruto * APP_CONFIG.tasas.comisionAgencia); 
             const coste = round2(bruto - comision); 
             
             let segSocial = 0;
-            for (const tramo of APP_CONFIG.ssTramos) {
-                if (bruto <= tramo.max) {
-                    segSocial = tramo.calc ? tramo.calc(coste) : tramo.cuota;
-                    break;
+            if (!isAutonomo) {
+                for (const tramo of APP_CONFIG.ssTramos) {
+                    if (bruto <= tramo.max) {
+                        segSocial = tramo.calc ? tramo.calc(coste) : tramo.cuota;
+                        break;
+                    }
                 }
             }
 
@@ -903,26 +958,29 @@
 
         function simularEscenario(importeBrutoPrueba, params) {
             importeBrutoPrueba = round2(importeBrutoPrueba);
-            let bucket = round2(importeBrutoPrueba - (params.dias * APP_CONFIG.limites.cacheMinimoDiario));
-            let dData = Array.from({length: params.dias}, (_, i) => ({ dia: i+1, cache: APP_CONFIG.limites.cacheMinimoDiario, km: 0, dieta: 0, alquiler: 0 }));
+            let iterDias = params.calcDias;
+            let cacheMinimo = params.isAutonomo ? 0 : APP_CONFIG.limites.cacheMinimoDiario;
+            
+            let bucket = round2(importeBrutoPrueba - (iterDias * cacheMinimo));
+            let dData = Array.from({length: iterDias}, (_, i) => ({ dia: params.isAutonomo ? 'Autónomo' : i+1, cache: cacheMinimo, km: 0, dieta: 0, alquiler: 0 }));
 
             // 1. Kilometraje
-            if (params.km > 0) {
+            if (params.km > 0 && !params.isAutonomo) {
                 let reqKm = params.km * APP_CONFIG.tasas.kilometraje;
-                let availableKm = Math.min(round2(reqKm * params.dias), bucket);
-                let perDayKm = round2(availableKm / params.dias); 
-                for (let i = 0; i < params.dias; i++) {
-                    let alloc = i === params.dias - 1 ? round2(availableKm - (perDayKm * (params.dias - 1))) : perDayKm;
+                let availableKm = Math.min(round2(reqKm * iterDias), bucket);
+                let perDayKm = round2(availableKm / iterDias); 
+                for (let i = 0; i < iterDias; i++) {
+                    let alloc = i === iterDias - 1 ? round2(availableKm - (perDayKm * (iterDias - 1))) : perDayKm;
                     dData[i].km = alloc; bucket = round2(bucket - alloc);
                 }
                 bucket = Math.max(0, bucket); 
             }
 
             // 2. Dietas
-            if (params.listaDietas && params.listaDietas.length > 0) {
+            if (params.listaDietas && params.listaDietas.length > 0 && !params.isAutonomo) {
                 let dietasSolicitadas = [];
                 params.listaDietas.forEach(d => { for(let i = 0; i < d.days; i++) dietasSolicitadas.push(round2(d.price)); });
-                dietasSolicitadas.slice(0, params.dias).forEach((req, i) => {
+                dietasSolicitadas.slice(0, iterDias).forEach((req, i) => {
                     let alloc = Math.min(req, bucket);
                     dData[i].dieta = alloc; bucket = round2(bucket - alloc);
                 });
@@ -938,14 +996,14 @@
 
             // 4. Material
             if (params.totalAlquiler > 0) {
-                for (let i = 0; i < params.dias; i++) {
+                for (let i = 0; i < iterDias; i++) {
                     let alloc = Math.min(round2(params.totalAlquiler), bucket);
                     dData[i].alquiler = alloc; bucket = round2(bucket - alloc);
                 }
                 bucket = Math.max(0, bucket);
             }
 
-            // 5. ASIGNACIÓN DERECHOS E IMAGEN/PI (En orden)
+            // 5. ASIGNACIÓN DERECHOS E IMAGEN/PI
             let derechosSim = [];
             let totalsCompany = { bruto: 0, comision: 0, coste: 0, segSocial: 0, irpf: 0, aLiquidar: 0 };
 
@@ -983,10 +1041,10 @@
             // 6. El resto va al Caché del último día
             if (bucket > 0) dData[dData.length - 1].cache = round2(dData[dData.length - 1].cache + bucket);
 
-            // Generación de Resultados por Día (Compañía general)
+            // Generación de Resultados por Día/Factura
             let dayResults = [];
             for (let i = 0; i < dData.length; i++) {
-                const res = calcularDia(dData[i].cache, params.irpf);
+                const res = calcularDia(dData[i].cache, params.irpf, params.isAutonomo);
                 totalsCompany.bruto = round2(totalsCompany.bruto + res.bruto);
                 totalsCompany.comision = round2(totalsCompany.comision + res.comision);
                 totalsCompany.coste = round2(totalsCompany.coste + res.coste);
@@ -1022,7 +1080,6 @@
             let taimanNeto = 0, taimanRes = null;
             let taimanImporteBase = 0;
             
-            // Extraer la Base Liquidable estricta de la compañía general de cada día para consolidar Taiman
             dData.forEach(d => {
                 if (d.alquiler > 0) {
                     const c = round2(d.alquiler * APP_CONFIG.tasas.comisionAgencia);
@@ -1044,14 +1101,17 @@
         }
 
         function calcular() {
+            let rawDias = parseInt(document.getElementById('inputDias').value);
+            let inputDias = isNaN(rawDias) || rawDias < 0 ? 0 : rawDias;
+            let isAutonomo = inputDias === 0;
+            let calcDias = isAutonomo ? 1 : inputDias;
+
             let inputPrincipal = parseFloat(document.getElementById('inputImportePrincipal').value) || 0;
-            let inputDias = Math.max(1, parseInt(document.getElementById('inputDias').value) || 1); 
             let inputIRPF = Math.max(APP_CONFIG.tasas.irpfGeneralMinimo, parseFloat(document.getElementById('inputIRPF').value) || APP_CONFIG.tasas.irpfGeneralMinimo);
-            let inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            let inputKilometraje = isAutonomo ? 0 : (parseFloat(document.getElementById('inputKilometraje').value) || 0);
             let inputGastos = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
             let totalAlquiler = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
             
-            // Extracción Nuevos Derechos separados
             let importeImagen = parseFloat(document.getElementById('inputImagenImporte').value) || 0;
             let importePI = parseFloat(document.getElementById('inputPIImporte').value) || 0;
             let irpfPI = parseFloat(document.getElementById('selectIRPFPI').value) || APP_CONFIG.tasas.irpfPI.bajo;
@@ -1064,18 +1124,18 @@
             document.getElementById('inputIRPF').value = inputIRPF;
             document.getElementById('errorImporteBruto').classList.add('hidden'); document.getElementById('warningImporteNeto').classList.add('hidden');
 
-            const params = { dias: inputDias, irpf: inputIRPF, km: inputKilometraje, gastos: inputGastos, totalAlquiler: totalAlquiler, listaDietas: listaDietas, derechos: arrayDerechos };
-            const minBrutoRequerido = inputDias * APP_CONFIG.limites.cacheMinimoDiario;
+            const params = { dias: inputDias, isAutonomo: isAutonomo, calcDias: calcDias, irpf: inputIRPF, km: inputKilometraje, gastos: inputGastos, totalAlquiler: totalAlquiler, listaDietas: isAutonomo ? [] : listaDietas, derechos: arrayDerechos };
+            const minBrutoRequerido = isAutonomo ? 0 : inputDias * APP_CONFIG.limites.cacheMinimoDiario;
             
             function getReqExtras(p) {
                 let rExtras = 0;
-                if (p.km > 0) rExtras = round2(rExtras + round2(p.km * APP_CONFIG.tasas.kilometraje * p.dias));
-                if (p.listaDietas && p.listaDietas.length > 0) {
+                if (p.km > 0 && !p.isAutonomo) rExtras = round2(rExtras + round2(p.km * APP_CONFIG.tasas.kilometraje * p.calcDias));
+                if (p.listaDietas && p.listaDietas.length > 0 && !p.isAutonomo) {
                     let dReq = []; p.listaDietas.forEach(d => { for(let i = 0; i < d.days; i++) dReq.push(round2(d.price)); });
-                    rExtras = round2(rExtras + dReq.slice(0, p.dias).reduce((a, b) => round2(a + b), 0));
+                    rExtras = round2(rExtras + dReq.slice(0, p.calcDias).reduce((a, b) => round2(a + b), 0));
                 }
                 if (p.gastos > 0) rExtras = round2(rExtras + round2(p.gastos));
-                if (p.totalAlquiler > 0) rExtras = round2(rExtras + (round2(p.totalAlquiler) * p.dias));
+                if (p.totalAlquiler > 0) rExtras = round2(rExtras + (round2(p.totalAlquiler) * p.calcDias));
                 if (p.derechos && p.derechos.length > 0) {
                     p.derechos.forEach(d => { rExtras = round2(rExtras + round2(d.importe)); });
                 }
@@ -1084,8 +1144,6 @@
 
             const baseBruto = round2(minBrutoRequerido + getReqExtras(params));
             let brutoFinal = 0, resultadoCalculo = null;
-
-            // Extraer solo los topes para el optimizador (cambiar Infinity a 500000 para el algoritmo)
             const thresholdsCache = APP_CONFIG.ssTramos.map(t => t.max === Infinity ? 500000.00 : t.max);
 
             if (calcMode === 'bruto') {
@@ -1097,9 +1155,8 @@
                 brutoFinal = inputPrincipal; resultadoCalculo = simularEscenario(brutoFinal, params);
                 document.getElementById('goalSeekBanner').classList.add('hidden');
 
-                // Optimización
                 const optBanner = document.getElementById('optimizationBanner');
-                if (APP_CONFIG.optimizacionTramosActiva) {
+                if (APP_CONFIG.optimizacionTramosActiva && !isAutonomo) {
                     let possibleOptimizations = [];
                     for (let i = 0; i < thresholdsCache.length; i++) {
                         let peakGross = round2(baseBruto + (thresholdsCache[i] - APP_CONFIG.limites.cacheMinimoDiario));
@@ -1125,13 +1182,14 @@
                 let targetCents = Math.round(inputPrincipal * 100), simMinima = simularEscenario(minBrutoRequerido, params), simMinimaCents = Math.round(simMinima.netoCalculado * 100);
 
                 if (targetCents <= simMinimaCents) {
-                    if (targetCents < simMinimaCents) document.getElementById('warningImporteNeto').classList.remove('hidden');
+                    if (targetCents < simMinimaCents && !isAutonomo) document.getElementById('warningImporteNeto').classList.remove('hidden');
                     brutoFinal = minBrutoRequerido; resultadoCalculo = simMinima;
                 } else {
                     let intervals = [], startPoint = minBrutoRequerido;
                     for (let i = 0; i < thresholdsCache.length; i++) {
-                        let endPoint = round2(baseBruto + (thresholdsCache[i] - APP_CONFIG.limites.cacheMinimoDiario));
+                        let endPoint = isAutonomo ? 500000 : round2(baseBruto + (thresholdsCache[i] - APP_CONFIG.limites.cacheMinimoDiario));
                         if (endPoint >= startPoint) { intervals.push({ low: startPoint, high: endPoint }); startPoint = round2(endPoint + 0.01); }
+                        if (isAutonomo) break; 
                     }
 
                     let bestBruto = null, bestSim = null, minGlobalDiff = Infinity;
@@ -1163,7 +1221,6 @@
 
             globalSimulationResult = resultadoCalculo;
             
-            // Ocultar formulario y mostrar resultados con scroll suave arriba
             document.getElementById('inputSection').classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1174,14 +1231,18 @@
                 derechosSummary = arrayDerechos.map(d => `${d.nombre}: ${formatCurrency(d.importe)} (IRPF ${d.irpf}%)`).join('<br>');
             }
 
+            const diasSummaryStr = isAutonomo ? '0 (Modo Autónomo)' : inputDias;
+            const kmSummaryStr = isAutonomo ? '0 km (No aplica)' : `${inputKilometraje} km`;
+            const dietasSummaryStr = isAutonomo ? 'No aplica' : (listaDietas.length ? listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>') : 'Ninguna añadida');
+
             document.getElementById('pdfSummaryContent').innerHTML = `
                 <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Importe de venta bruto' : 'Objetivo Neto Solicitado'}</span><span class="font-bold text-slate-800">${formatCurrency(inputPrincipal)}</span></div>
                 <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Total a liquidar (Neto)' : 'Importe Bruto Resultante'}</span><span class="font-bold text-slate-800 ${calcMode === 'bruto' ? 'text-blue-700' : 'text-blue-600'}">${formatCurrency(calcMode === 'bruto' ? resultadoCalculo.netoCalculado : brutoFinal)}</span></div>
-                <div><span class="text-slate-500 block text-xs">Nº Días</span><span class="font-bold text-slate-800">${inputDias}</span></div>
+                <div><span class="text-slate-500 block text-xs">Nº Días</span><span class="font-bold text-slate-800">${diasSummaryStr}</span></div>
                 <div><span class="text-slate-500 block text-xs">% retención IRPF general</span><span class="font-bold text-slate-800">${inputIRPF}%</span></div>
-                <div><span class="text-slate-500 block text-xs">Kilometraje Diario</span><span class="font-bold text-slate-800">${inputKilometraje} km</span></div>
+                <div><span class="text-slate-500 block text-xs">Kilometraje Diario</span><span class="font-bold text-slate-800">${kmSummaryStr}</span></div>
                 <div><span class="text-slate-500 block text-xs">Gastos Justificados</span><span class="font-bold text-slate-800">${formatCurrency(inputGastos)}</span></div>
-                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Dietas</span><span class="font-bold text-slate-800 text-sm">${listaDietas.length ? listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>') : 'Ninguna añadida'}</span></div>
+                <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Dietas</span><span class="font-bold text-slate-800 text-sm">${dietasSummaryStr}</span></div>
                 <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Material de Alquiler</span><span class="font-bold text-slate-800 text-sm">${listaMaterial.length ? listaMaterial.map(m => `${m.qty}x ${m.name}`).join(', ') : 'Ninguno añadido'}</span></div>
                 <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Derechos de Imagen y P.I.</span><span class="font-bold text-slate-800 text-sm">${derechosSummary}</span></div>
             `;
@@ -1192,7 +1253,12 @@
             resultadoCalculo.dayResults.forEach(resDia => {
                 const dayBlock = document.createElement('div');
                 dayBlock.className = 'break-inside-avoid flex flex-col border-b border-slate-200 last:border-0';
-                let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-regular fa-calendar-days mr-2"></i>Día ${resDia.dataOriginal.dia}</div><div class="flex flex-col divide-y divide-slate-100">`;
+                
+                let isDiaAutonomo = resDia.dataOriginal.dia === 'Autónomo';
+                let dayTitle = isDiaAutonomo ? 'Factura Única (Autónomo)' : `Día ${resDia.dataOriginal.dia}`;
+                let iconTitle = isDiaAutonomo ? 'fa-user-tie' : 'fa-calendar-days';
+                
+                let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-solid ${iconTitle} mr-2"></i>${dayTitle}</div><div class="flex flex-col divide-y divide-slate-100">`;
                 
                 const trGen = (icon, title, b, c, cost, ss, irpf, n, ext) => `
                     <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[22%_13%_13%_13%_11%_11%_17%] items-center">
@@ -1206,9 +1272,11 @@
                     </div>`;
 
                 let irpfStr = params.irpf.toString().replace('.', ',');
-                html += trGen('fa-microphone', `Caché <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Retención)</span>`, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                let titleCache = isDiaAutonomo ? `Honorarios <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Retención)</span>` : `Caché <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Retención)</span>`;
                 
-                if (resDia.dataOriginal.km > 0) {
+                html += trGen('fa-microphone', titleCache, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial === 0 ? '-' : resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                
+                if (resDia.dataOriginal.km > 0 && !isAutonomo) {
                     let kmCalculadoNum = resDia.dataOriginal.km / APP_CONFIG.tasas.kilometraje;
                     if (Math.abs(kmCalculadoNum - inputKilometraje) < 0.05) kmCalculadoNum = inputKilometraje;
                     let kmStr = kmCalculadoNum.toFixed(2).replace(/\.00$/, '').replace('.', ',');
@@ -1216,7 +1284,7 @@
                     html += trGen('fa-car', kmTitle, resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
                 }
                 
-                if (resDia.dataOriginal.dieta > 0) html += trGen('fa-utensils', 'Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.dieta > 0 && !isAutonomo) html += trGen('fa-utensils', 'Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
                 if (resDia.dataOriginal.alquiler > 0) html += trGen('fa-guitar', 'Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
                 
                 dayBlock.innerHTML = html + `</div>`;
@@ -1236,7 +1304,6 @@
                     </div></div>`;
             }
 
-            // DERECHOS DE IMAGEN/PI
             if (resultadoCalculo.derechosSim && resultadoCalculo.derechosSim.length > 0) {
                 resultadoCalculo.derechosSim.forEach(dRes => {
                     const iconClass = dRes.tipo === 'imagen' ? 'fa-camera-retro' : 'fa-lightbulb';
@@ -1260,12 +1327,11 @@
                     <div class="text-right tabular-nums font-bold text-slate-900">${formatCurrency(tz.bruto)}</div>
                     <div class="text-right tabular-nums font-bold text-red-600">- ${formatCurrency(tz.comision)}</div>
                     <div class="text-right tabular-nums font-bold text-slate-900">${formatCurrency(tz.coste)}</div>
-                    <div class="text-right tabular-nums font-bold text-red-600">- ${formatCurrency(tz.segSocial)}</div>
+                    <div class="text-right tabular-nums font-bold ${tz.segSocial === 0 ? 'text-slate-400' : 'text-red-600'}">${tz.segSocial === 0 ? '-' : '- ' + formatCurrency(tz.segSocial)}</div>
                     <div class="text-right tabular-nums font-bold text-red-600">- ${formatCurrency(tz.irpf)}</div>
                     <div class="text-right tabular-nums font-bold text-blue-700 text-lg">${formatCurrency(tz.aLiquidar)}</div>
                 </div>`;
 
-            // Muestra Taiman y el Grand Total si procede
             const gts = document.getElementById('grandTotalSection');
             const gta = document.getElementById('grandTotalAmount');
             const gtDesc = document.getElementById('grandTotalLabelDesc');
@@ -1279,15 +1345,12 @@
                 document.getElementById('resTaimanALiquidar').textContent = formatCurrency(tr.aLiquidar);
                 document.getElementById('taimanSection').classList.remove('hidden'); document.getElementById('taimanDivider').classList.remove('hidden');
                 
-                // Setear Grand Total
                 gts.classList.remove('hidden');
                 gta.textContent = formatCurrency(tz.aLiquidar + tr.aLiquidar);
                 gtDesc.textContent = `Suma de liquidación ${getNombreSociedad() === 'General' ? 'general' : getNombreSociedad()} + Taiman`;
 
             } else {
                 document.getElementById('taimanSection').classList.add('hidden'); document.getElementById('taimanDivider').classList.add('hidden');
-                
-                // Ocultar Grand Total
                 gts.classList.add('hidden');
             }
         }
@@ -1295,13 +1358,12 @@
         function copiarPortapapeles() {
             if (!globalSimulationResult) return;
 
-            // Extraemos el IRPF actual limpio para pasarlo nativamente al clipboard sin HTML extra en las descripciones
             const currentIRPF = parseFloat(document.getElementById('inputIRPF').value) || APP_CONFIG.tasas.irpfGeneralMinimo;
             const irpfStrClip = currentIRPF.toString().replace('.', ',');
             const inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            const inputDias = parseInt(document.getElementById('inputDias').value) || 0;
+            const isAutonomo = inputDias === 0;
 
-            // Eliminamos los "height" fijos que cortaban el texto en Excel.
-            // Añadimos anchos (width) explícitos en las cabeceras para que los emails no desestructuren las columnas.
             const thS = "padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: right; white-space: nowrap;";
             const thFirst = "padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: left; white-space: nowrap;";
             const tdS = "padding: 8px; text-align: right; border-bottom: 1px solid #e2e8f0; vertical-align: middle;";
@@ -1327,9 +1389,10 @@
                     </thead>
                     <tbody>`;
 
-            // Rellenar filas de General
             globalSimulationResult.dayResults.forEach(resDia => {
-                html += `<tr><td colspan="7" style="padding: 10px 16px; font-weight: bold; color: #1e40af; background-color: #eff6ff; border-bottom: 1px solid #cbd5e1; text-align: left;">Día ${resDia.dataOriginal.dia}</td></tr>`;
+                let isDiaAutonomo = resDia.dataOriginal.dia === 'Autónomo';
+                let dayTitleClip = isDiaAutonomo ? 'Factura Única (Autónomo)' : `Día ${resDia.dataOriginal.dia}`;
+                html += `<tr><td colspan="7" style="padding: 10px 16px; font-weight: bold; color: #1e40af; background-color: #eff6ff; border-bottom: 1px solid #cbd5e1; text-align: left;">${dayTitleClip}</td></tr>`;
                 
                 const addRow = (tit, b, c, bl, ss, irpf, net, ext) => {
                     html += `<tr><td style="${tdFirst}">${tit}</td>
@@ -1339,16 +1402,17 @@
                     <td style="${tdS} font-weight: bold; ${ext ? 'color: #9333ea; font-style: italic;' : 'color: #1d4ed8;'}">${ext || formatCurrency(net)}</td></tr>`;
                 };
 
-                addRow(`Caché (${irpfStrClip}% Retención)`, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                let titleCacheClip = isDiaAutonomo ? `Honorarios (${irpfStrClip}% Retención)` : `Caché (${irpfStrClip}% Retención)`;
+                addRow(titleCacheClip, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial === 0 ? '-' : resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
                 
-                if (resDia.dataOriginal.km > 0) {
+                if (resDia.dataOriginal.km > 0 && !isAutonomo) {
                     let kmCalculadoNum = resDia.dataOriginal.km / APP_CONFIG.tasas.kilometraje;
                     if (Math.abs(kmCalculadoNum - inputKilometraje) < 0.05) kmCalculadoNum = inputKilometraje;
                     let kmStr = kmCalculadoNum.toFixed(2).replace(/\.00$/, '').replace('.', ',');
                     addRow(`Kilometraje (${kmStr} km)`, resDia.dataOriginal.km, resDia.dataOriginal.km*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.km*(1-APP_CONFIG.tasas.comisionAgencia));
                 }
                 
-                if (resDia.dataOriginal.dieta > 0) addRow('Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
+                if (resDia.dataOriginal.dieta > 0 && !isAutonomo) addRow('Dietas', resDia.dataOriginal.dieta, resDia.dataOriginal.dieta*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', resDia.dataOriginal.dieta*(1-APP_CONFIG.tasas.comisionAgencia));
                 if (resDia.dataOriginal.alquiler > 0) addRow('Alquiler Material', resDia.dataOriginal.alquiler, resDia.dataOriginal.alquiler*APP_CONFIG.tasas.comisionAgencia, resDia.dataOriginal.alquiler*(1-APP_CONFIG.tasas.comisionAgencia), '-', '-', 0, 'via Taiman');
             });
 
@@ -1369,20 +1433,17 @@
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${formatCurrency(tz.bruto)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #dc2626; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">- ${formatCurrency(tz.comision)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${formatCurrency(tz.coste)}</td>
-                <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #dc2626; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">- ${formatCurrency(tz.segSocial)}</td>
+                <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: ${tz.segSocial === 0 ? '#94a3b8' : '#dc2626'}; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${tz.segSocial === 0 ? '-' : '- ' + formatCurrency(tz.segSocial)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #dc2626; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">- ${formatCurrency(tz.irpf)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #1d4ed8; font-size: 14px; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${formatCurrency(tz.aLiquidar)}</td>
             </tr>`;
 
-            // Si hay datos de Taiman
             if (globalSimulationResult.taimanRes) {
                 const tr = globalSimulationResult.taimanRes;
                 const irpfTaimanLimpio = Math.round(APP_CONFIG.tasas.irpfTaiman * 100);
                 
-                // --- FILA BLANCA DE SEPARACIÓN ---
                 html += `<tr><td colspan="7" style="padding: 10px; border: none; background-color: #ffffff;"></td></tr>`;
 
-                // --- CABECERA TAIMAN INTEGRADAS A LA MISMA TABLA MAESTRA ---
                 html += `<tr>
                             <th colspan="7" style="color: #1e293b; font-size: 16px; padding: 12px 16px; border-bottom: 2px solid #cbd5e1; border-top: 1px solid #e2e8f0; text-align: left; background-color: #f8fafc;">
                                 Desglose Liquidación Taiman
@@ -1398,7 +1459,6 @@
                             <th style="${thS}">A liquidar</th>
                         </tr>`;
 
-                // --- DATOS TAIMAN ---
                 html += `<tr>
                             <td style="padding: 12px 8px 12px 16px; font-weight: bold; color: #0f172a; text-transform: uppercase; text-align: left; background-color: #eff6ff; border-bottom: 2px solid #cbd5e1;">Total Taiman</td>
                             <td style="padding: 12px 8px; text-align: right; font-weight: bold; background-color: #eff6ff; border-bottom: 2px solid #cbd5e1;">${formatCurrency(tr.importe)}</td>
@@ -1409,10 +1469,8 @@
                             <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #1d4ed8; font-size: 14px; background-color: #eff6ff; border-bottom: 2px solid #cbd5e1;">${formatCurrency(tr.aLiquidar)}</td>
                         </tr>`;
                 
-                // --- FILA BLANCA DE SEPARACIÓN ---
                 html += `<tr><td colspan="7" style="padding: 10px; border: none; background-color: #ffffff;"></td></tr>`;
 
-                // --- RESUMEN FINAL COMPACTO ---
                 const grandTotalNeto = tz.aLiquidar + tr.aLiquidar;
                 html += `<tr>
                             <td colspan="4" style="padding: 16px; text-align: left; background-color: #f8fafc; border: 1px solid #cbd5e1;">
@@ -1425,7 +1483,6 @@
                         </tr>`;
             }
 
-            // --- LEGAL Y CIERRE ---
             const txtLegal = APP_CONFIG.nombreSociedadPrincipal ? APP_CONFIG.nombreSociedadPrincipal : "la entidad gestora";
             html += `<tr>
                         <td colspan="7" style="padding: 16px; text-align: center; font-size: 11px; color: #94a3b8; font-style: italic; border: none; background-color: #ffffff;">
@@ -1466,4 +1523,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
