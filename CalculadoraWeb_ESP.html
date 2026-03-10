@@ -243,7 +243,7 @@
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                             <div class="w-full md:w-32 relative">
-                                <input type="number" id="inputCustomPrice" placeholder="Precio/día (€)" min="0" step="0.01"
+                                <input type="number" id="inputCustomPrice" placeholder="Precio neto/día (€)" min="0" step="0.01"
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
                             </div>
@@ -337,7 +337,7 @@
             <!-- SECCIÓN RESULTADOS -->
             <div id="resultsSection" class="hidden relative">
                 
-                <!-- Botones de Acción (Movidos arriba) -->
+                <!-- Botones de Acción -->
                 <div id="actionButtonsContainer" class="flex flex-wrap justify-end gap-3 mb-6 pb-4 border-b border-slate-200">
                     <button id="btnVolver" onclick="volverAEditar()" type="button" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm">
                         <i class="fa-solid fa-arrow-left text-slate-500"></i> Editar datos
@@ -350,10 +350,13 @@
                     </button>
                 </div>
 
-                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2 mb-6" id="tituloLiquidacionPrincipal">
-                    <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
-                    Desglose de la Liquidación
-                </h2>
+                <!-- Cabecera Tabla -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b sm:border-0 border-slate-200 pb-4 sm:pb-0">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2" id="tituloLiquidacionPrincipal">
+                        <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                        Desglose de la Liquidación
+                    </h2>
+                </div>
 
                 <div id="goalSeekBanner" class="hidden mb-6 bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3 shadow-sm">
                     <i class="fa-solid fa-bullseye text-emerald-500 text-xl flex-shrink-0"></i>
@@ -758,8 +761,11 @@
             let name, price;
             if (select.value === 'custom') {
                 name = document.getElementById('inputCustomName').value.trim();
-                price = parseFloat(document.getElementById('inputCustomPrice').value);
-                if (!name || isNaN(price) || price <= 0) return document.getElementById('errorCustomMaterial').classList.remove('hidden');
+                let rawPrice = parseFloat(document.getElementById('inputCustomPrice').value);
+                if (!name || isNaN(rawPrice) || rawPrice <= 0) return document.getElementById('errorCustomMaterial').classList.remove('hidden');
+                
+                // Convertimos el precio neto indicado a bruto para absorber la comisión de agencia
+                price = rawPrice / (1 - APP_CONFIG.tasas.comisionAgencia);
                 name = "Otros: " + name;
             } else {
                 price = parseFloat(select.value);
@@ -1107,27 +1113,39 @@
                 <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Derechos de Imagen y P.I.</span><span class="font-bold text-slate-800 text-sm">${derechosSummary}</span></div>
             `;
 
-            // --- RENDER TABLAS ---
+            renderTableData();
+        }
+
+        function renderTableData() {
+            if (!globalSimulationResult) return;
             const multiDayBody = document.getElementById('multiDayBody');
             multiDayBody.innerHTML = '';
-            resultadoCalculo.dayResults.forEach(resDia => {
+            
+            const inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            const irpfStr = document.getElementById('inputIRPF').value.replace('.', ',');
+
+            const trGen = (icon, title, b, c, cost, ss, irpf, n, ext) => `
+                <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[22%_13%_13%_13%_11%_11%_17%] items-center border-b border-slate-100 last:border-0 break-inside-avoid">
+                    <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid ${icon} text-slate-400 mr-2"></i>${title}</div>
+                    <div class="text-right tabular-nums text-slate-900">${formatCurrency(b)}</div>
+                    <div class="text-right tabular-nums text-red-600">- ${formatCurrency(c)}</div>
+                    <div class="text-right tabular-nums text-slate-900">${formatCurrency(cost)}</div>
+                    <div class="text-right tabular-nums ${ss === '-' ? 'text-slate-400' : 'text-red-600'}">${ss === '-' ? '-' : '- ' + formatCurrency(ss)}</div>
+                    <div class="text-right tabular-nums ${irpf === '-' ? 'text-slate-400' : 'text-red-600'}">${irpf === '-' ? '-' : '- ' + formatCurrency(irpf)}</div>
+                    <div class="text-right tabular-nums font-bold ${ext ? 'text-purple-600 italic' : 'text-blue-700'}">${ext || formatCurrency(n)}</div>
+                </div>`;
+
+            // LOGICA VISTA DETALLADA UNICA
+            globalSimulationResult.dayResults.forEach(resDia => {
                 const dayBlock = document.createElement('div');
                 dayBlock.className = 'break-inside-avoid flex flex-col border-b border-slate-200 last:border-0';
-                let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-regular fa-calendar-days mr-2"></i>Día ${resDia.dataOriginal.dia}</div><div class="flex flex-col divide-y divide-slate-100">`;
+                let dayTitle = `Día ${resDia.dataOriginal.dia}`;
+                let iconTitle = 'fa-calendar-days';
                 
-                const trGen = (icon, title, b, c, cost, ss, irpf, n, ext) => `
-                    <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[22%_13%_13%_13%_11%_11%_17%] items-center">
-                        <div class="font-medium text-slate-700 pl-4 text-xs flex items-center"><i class="fa-solid ${icon} text-slate-400 mr-2"></i>${title}</div>
-                        <div class="text-right tabular-nums text-slate-900">${formatCurrency(b)}</div>
-                        <div class="text-right tabular-nums text-red-600">- ${formatCurrency(c)}</div>
-                        <div class="text-right tabular-nums text-slate-900">${formatCurrency(cost)}</div>
-                        <div class="text-right tabular-nums ${ss === '-' ? 'text-slate-400' : 'text-red-600'}">${ss === '-' ? '-' : '- ' + formatCurrency(ss)}</div>
-                        <div class="text-right tabular-nums ${irpf === '-' ? 'text-slate-400' : 'text-red-600'}">${irpf === '-' ? '-' : '- ' + formatCurrency(irpf)}</div>
-                        <div class="text-right tabular-nums font-bold ${ext ? 'text-purple-600 italic' : 'text-blue-700'}">${ext || formatCurrency(n)}</div>
-                    </div>`;
-
-                let irpfStr = params.irpf.toString().replace('.', ',');
-                html += trGen('fa-microphone', `Caché <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Retención)</span>`, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+                let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-solid ${iconTitle} mr-2"></i>${dayTitle}</div><div class="flex flex-col divide-y divide-slate-100">`;
+                
+                let titleCache = `Caché <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% IRPF)</span>`;
+                html += trGen('fa-microphone', titleCache, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial === 0 ? '-' : resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
                 
                 if (resDia.dataOriginal.km > 0) {
                     let kmCalculadoNum = resDia.dataOriginal.km / APP_CONFIG.tasas.kilometraje;
@@ -1144,55 +1162,39 @@
                 multiDayBody.appendChild(dayBlock);
             });
 
-            if (resultadoCalculo.gastosRes) {
-                const gRes = resultadoCalculo.gastosRes;
-                multiDayBody.innerHTML += `<div class="break-inside-avoid border-b border-slate-200 bg-slate-100/50">
-                    <div class="hover:bg-slate-50 transition-colors text-sm py-3 px-4 grid grid-cols-[22%_13%_13%_13%_11%_11%_17%] items-center">
-                        <div class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-receipt text-slate-400 mr-2"></i>Gastos Justificados</div>
-                        <div class="text-right tabular-nums text-slate-900">${formatCurrency(gRes.bruto)}</div>
-                        <div class="text-right tabular-nums text-red-600">- ${formatCurrency(gRes.comision)}</div>
-                        <div class="text-right tabular-nums text-slate-900">${formatCurrency(gRes.baseLiq)}</div>
-                        <div class="text-right tabular-nums text-slate-400">-</div><div class="text-right tabular-nums text-slate-400">-</div>
-                        <div class="text-right tabular-nums text-blue-700 font-bold">${formatCurrency(gRes.aLiquidar)}</div>
-                    </div></div>`;
+            if (globalSimulationResult.gastosRes) {
+                const g = globalSimulationResult.gastosRes;
+                multiDayBody.innerHTML += `<div class="break-inside-avoid border-b border-slate-200 bg-slate-100/50">` + 
+                    trGen('fa-receipt', '<span class="font-bold">Gastos Justificados</span>', g.bruto, g.comision, g.baseLiq, '-', '-', g.aLiquidar) + `</div>`;
             }
 
-            // DERECHOS DE IMAGEN/PI
-            if (resultadoCalculo.derechosSim && resultadoCalculo.derechosSim.length > 0) {
-                resultadoCalculo.derechosSim.forEach(dRes => {
-                    const iconClass = dRes.tipo === 'imagen' ? 'fa-camera-retro' : 'fa-lightbulb';
-                    multiDayBody.innerHTML += `<div class="break-inside-avoid border-b border-slate-200 bg-indigo-50/40">
-                        <div class="hover:bg-indigo-50 transition-colors text-sm py-3 px-4 grid grid-cols-[22%_13%_13%_13%_11%_11%_17%] items-center">
-                            <div class="font-bold text-indigo-800 text-xs flex items-center"><i class="fa-solid ${iconClass} text-indigo-400 mr-2"></i>${dRes.nombre} <span class="text-[10px] text-indigo-400 font-normal ml-1">(${dRes.irpfPct}% Retención)</span></div>
-                            <div class="text-right tabular-nums text-slate-900">${formatCurrency(dRes.bruto)}</div>
-                            <div class="text-right tabular-nums text-red-600">- ${formatCurrency(dRes.comision)}</div>
-                            <div class="text-right tabular-nums text-slate-900">${formatCurrency(dRes.baseLiq)}</div>
-                            <div class="text-right tabular-nums text-slate-400">-</div>
-                            <div class="text-right tabular-nums text-red-600">- ${formatCurrency(dRes.irpfImporte)}</div>
-                            <div class="text-right tabular-nums text-blue-700 font-bold">${formatCurrency(dRes.aLiquidar)}</div>
-                        </div></div>`;
+            if (globalSimulationResult.derechosSim && globalSimulationResult.derechosSim.length > 0) {
+                globalSimulationResult.derechosSim.forEach(d => {
+                    const icon = d.tipo === 'imagen' ? 'fa-camera-retro' : 'fa-lightbulb';
+                    multiDayBody.innerHTML += `<div class="break-inside-avoid border-b border-slate-200 bg-indigo-50/40 text-indigo-800">` + 
+                        trGen(icon, `<span class="font-bold">${d.nombre}</span> <span class="text-[10px] text-indigo-400 font-normal ml-1">(${d.irpfPct}% IRPF)</span>`, d.bruto, d.comision, d.baseLiq, '-', d.irpfImporte, d.aLiquidar) + `</div>`;
                 });
             }
 
-            const tz = resultadoCalculo.totalsCompany;
+            // Renderizar Tablas Estáticas (Taiman y Footer)
+            const tz = globalSimulationResult.totalsCompany;
             document.getElementById('multiDayFoot').innerHTML = `
                 <div class="py-4 px-4 grid grid-cols-[22%_13%_13%_13%_11%_11%_17%] items-center">
                     <div class="font-bold text-slate-900 uppercase text-xs tracking-wider">Total ${getNombreSociedad()}</div>
                     <div class="text-right tabular-nums font-bold text-slate-900">${formatCurrency(tz.bruto)}</div>
                     <div class="text-right tabular-nums font-bold text-red-600">- ${formatCurrency(tz.comision)}</div>
                     <div class="text-right tabular-nums font-bold text-slate-900">${formatCurrency(tz.coste)}</div>
-                    <div class="text-right tabular-nums font-bold text-red-600">- ${formatCurrency(tz.segSocial)}</div>
+                    <div class="text-right tabular-nums font-bold ${tz.segSocial === 0 ? 'text-slate-400' : 'text-red-600'}">${tz.segSocial === 0 ? '-' : '- ' + formatCurrency(tz.segSocial)}</div>
                     <div class="text-right tabular-nums font-bold text-red-600">- ${formatCurrency(tz.irpf)}</div>
                     <div class="text-right tabular-nums font-bold text-blue-700 text-lg">${formatCurrency(tz.aLiquidar)}</div>
                 </div>`;
 
-            // Muestra Taiman y el Grand Total si procede
             const gts = document.getElementById('grandTotalSection');
             const gta = document.getElementById('grandTotalAmount');
             const gtDesc = document.getElementById('grandTotalLabelDesc');
             
-            if (resultadoCalculo.taimanRes) {
-                const tr = resultadoCalculo.taimanRes;
+            if (globalSimulationResult.taimanRes) {
+                const tr = globalSimulationResult.taimanRes;
                 document.getElementById('resTaimanImporte').textContent = formatCurrency(tr.importe);
                 document.getElementById('resTaimanComision').textContent = "- " + formatCurrency(tr.comision);
                 document.getElementById('resTaimanBaseLiq').textContent = formatCurrency(tr.baseLiq);
@@ -1200,15 +1202,12 @@
                 document.getElementById('resTaimanALiquidar').textContent = formatCurrency(tr.aLiquidar);
                 document.getElementById('taimanSection').classList.remove('hidden'); document.getElementById('taimanDivider').classList.remove('hidden');
                 
-                // Setear Grand Total
                 gts.classList.remove('hidden');
                 gta.textContent = formatCurrency(tz.aLiquidar + tr.aLiquidar);
                 gtDesc.textContent = `Suma de liquidación ${getNombreSociedad() === 'General' ? 'general' : getNombreSociedad()} + Taiman`;
 
             } else {
                 document.getElementById('taimanSection').classList.add('hidden'); document.getElementById('taimanDivider').classList.add('hidden');
-                
-                // Ocultar Grand Total
                 gts.classList.add('hidden');
             }
         }
@@ -1216,13 +1215,10 @@
         function copiarPortapapeles() {
             if (!globalSimulationResult) return;
 
-            // Extraemos el IRPF actual limpio para pasarlo nativamente al clipboard sin HTML extra en las descripciones
             const currentIRPF = parseFloat(document.getElementById('inputIRPF').value) || APP_CONFIG.tasas.irpfGeneralMinimo;
             const irpfStrClip = currentIRPF.toString().replace('.', ',');
             const inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
 
-            // Eliminamos los "height" fijos que cortaban el texto en Excel.
-            // Añadimos anchos (width) explícitos en las cabeceras para que los emails no desestructuren las columnas.
             const thS = "padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: right; white-space: nowrap;";
             const thFirst = "padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: left; white-space: nowrap;";
             const tdS = "padding: 8px; text-align: right; border-bottom: 1px solid #e2e8f0; vertical-align: middle;";
@@ -1248,19 +1244,21 @@
                     </thead>
                     <tbody>`;
 
-            // Rellenar filas de General
-            globalSimulationResult.dayResults.forEach(resDia => {
-                html += `<tr><td colspan="7" style="padding: 10px 16px; font-weight: bold; color: #1e40af; background-color: #eff6ff; border-bottom: 1px solid #cbd5e1; text-align: left;">Día ${resDia.dataOriginal.dia}</td></tr>`;
-                
-                const addRow = (tit, b, c, bl, ss, irpf, net, ext) => {
-                    html += `<tr><td style="${tdFirst}">${tit}</td>
-                    <td style="${tdS}">${formatCurrency(b)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(c)}</td>
-                    <td style="${tdS}">${formatCurrency(bl)}</td><td style="${tdS} color: ${ss==='-'?'#94a3b8':'#dc2626'};">${ss==='-'?'-':'- '+formatCurrency(ss)}</td>
-                    <td style="${tdS} color: ${irpf==='-'?'#94a3b8':'#dc2626'};">${irpf==='-'?'-':'- '+formatCurrency(irpf)}</td>
-                    <td style="${tdS} font-weight: bold; ${ext ? 'color: #9333ea; font-style: italic;' : 'color: #1d4ed8;'}">${ext || formatCurrency(net)}</td></tr>`;
-                };
+            const addRow = (tit, b, c, bl, ss, irpf, net, ext, colorBg='#ffffff', fontBold=false, colorTxtTit='#334155') => {
+                html += `<tr style="background-color: ${colorBg};"><td style="${tdFirst} ${fontBold ? 'font-weight: bold;' : ''} color: ${colorTxtTit};">${tit}</td>
+                <td style="${tdS}">${formatCurrency(b)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(c)}</td>
+                <td style="${tdS}">${formatCurrency(bl)}</td><td style="${tdS} color: ${ss==='-'?'#94a3b8':'#dc2626'};">${ss==='-'?'-':'- '+formatCurrency(ss)}</td>
+                <td style="${tdS} color: ${irpf==='-'?'#94a3b8':'#dc2626'};">${irpf==='-'?'-':'- '+formatCurrency(irpf)}</td>
+                <td style="${tdS} font-weight: bold; ${ext ? 'color: #9333ea; font-style: italic;' : 'color: #1d4ed8;'}">${ext || formatCurrency(net)}</td></tr>`;
+            };
 
-                addRow(`Caché (${irpfStrClip}% Retención)`, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
+            // LOGICA CLIPBOARD DETALLADA UNICA
+            globalSimulationResult.dayResults.forEach(resDia => {
+                let dayTitleClip = `Día ${resDia.dataOriginal.dia}`;
+                html += `<tr><td colspan="7" style="padding: 10px 16px; font-weight: bold; color: #1e40af; background-color: #eff6ff; border-bottom: 1px solid #cbd5e1; text-align: left;">${dayTitleClip}</td></tr>`;
+                
+                let titleCacheClip = `Caché (${irpfStrClip}% IRPF)`;
+                addRow(titleCacheClip, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial === 0 ? '-' : resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
                 
                 if (resDia.dataOriginal.km > 0) {
                     let kmCalculadoNum = resDia.dataOriginal.km / APP_CONFIG.tasas.kilometraje;
@@ -1275,12 +1273,12 @@
 
             if (globalSimulationResult.gastosRes) {
                 const g = globalSimulationResult.gastosRes;
-                html += `<tr><td style="${tdFirst} font-weight: bold;">Gastos Justificados</td><td style="${tdS}">${formatCurrency(g.bruto)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(g.comision)}</td><td style="${tdS}">${formatCurrency(g.baseLiq)}</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} font-weight: bold; color: #1d4ed8;">${formatCurrency(g.aLiquidar)}</td></tr>`;
+                addRow('Gastos Justificados', g.bruto, g.comision, g.baseLiq, '-', '-', g.aLiquidar, '', '#f8fafc', true);
             }
 
             if (globalSimulationResult.derechosSim && globalSimulationResult.derechosSim.length > 0) {
                 globalSimulationResult.derechosSim.forEach(d => {
-                    html += `<tr><td style="${tdFirst} font-weight: bold; color: #3730a3;">${d.nombre} (${d.irpfPct}% Retención)</td><td style="${tdS}">${formatCurrency(d.bruto)}</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(d.comision)}</td><td style="${tdS}">${formatCurrency(d.baseLiq)}</td><td style="${tdS} color: #94a3b8;">-</td><td style="${tdS} color: #dc2626;">- ${formatCurrency(d.irpfImporte)}</td><td style="${tdS} font-weight: bold; color: #1d4ed8;">${formatCurrency(d.aLiquidar)}</td></tr>`;
+                    addRow(`${d.nombre} (${d.irpfPct}% IRPF)`, d.bruto, d.comision, d.baseLiq, '-', d.irpfImporte, d.aLiquidar, '', '#eef2ff', true, '#3730a3');
                 });
             }
 
@@ -1290,7 +1288,7 @@
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${formatCurrency(tz.bruto)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #dc2626; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">- ${formatCurrency(tz.comision)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${formatCurrency(tz.coste)}</td>
-                <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #dc2626; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">- ${formatCurrency(tz.segSocial)}</td>
+                <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: ${tz.segSocial === 0 ? '#94a3b8' : '#dc2626'}; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${tz.segSocial === 0 ? '-' : '- ' + formatCurrency(tz.segSocial)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #dc2626; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">- ${formatCurrency(tz.irpf)}</td>
                 <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #1d4ed8; font-size: 14px; border-top: 2px solid #cbd5e1; background-color: #eff6ff;">${formatCurrency(tz.aLiquidar)}</td>
             </tr>`;
@@ -1387,4 +1385,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
