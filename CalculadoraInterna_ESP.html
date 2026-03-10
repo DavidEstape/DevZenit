@@ -414,8 +414,9 @@
                     </h2>
                     
                     <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200 shadow-sm break-inside-avoid">
-                        <button id="btnViewAgrupada" onclick="setViewMode('agrupada')" type="button" class="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-md bg-white shadow-sm text-blue-600 transition-all">Vista Agrupada</button>
-                        <button id="btnViewDetallada" onclick="setViewMode('detallada')" type="button" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all">Desglose por Día</button>
+                        <!-- Cambio de clases para que Vista Detallada sea la seleccionada visualmente por defecto -->
+                        <button id="btnViewAgrupada" onclick="setViewMode('agrupada')" type="button" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all">Vista Agrupada</button>
+                        <button id="btnViewDetallada" onclick="setViewMode('detallada')" type="button" class="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-md bg-white shadow-sm text-blue-600 transition-all">Desglose por Día</button>
                     </div>
                 </div>
 
@@ -424,7 +425,7 @@
                     <div>
                         <p class="text-sm text-emerald-800 m-0">
                             Para conseguir un neto de <strong id="gsNetoTarget">0,00 €</strong>, 
-                            el importe bruto de facturación debería ser de <strong id="gsBrutoResult" class="text-lg">0,00 €</strong>.
+                            el importe bruto de facturación deberia ser de <strong id="gsBrutoResult" class="text-lg">0,00 €</strong>.
                         </p>
                     </div>
                 </div>
@@ -600,7 +601,8 @@
 
         let globalSimulationResult = null;
         let calcMode = 'bruto';
-        let currentViewMode = 'agrupada'; // Modo visualización por defecto
+        // Cambio aquí: 'detallada' en lugar de 'agrupada'
+        let currentViewMode = 'detallada'; 
         let listaMaterial = [];
         let listaDietas = [];
 
