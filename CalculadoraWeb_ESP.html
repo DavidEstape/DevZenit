@@ -78,7 +78,7 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fa-regular fa-calendar text-slate-400"></i>
                                 </div>
-                                <input type="number" id="inputDias" value="1" min="1" step="1" required oninput="renderDietas(); ocultarResultados();"
+                                <input type="number" id="inputDias" value="1" min="1" step="1" required oninput="onDiasChanged();"
                                     class="pl-9 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                             </div>
                         </div>
@@ -100,19 +100,28 @@
 
                     <!-- BLOQUE 2: GASTOS Y KILOMETRAJE -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 mb-6">
-                        <div class="md:col-span-3">
-                            <label for="inputKilometraje" class="block text-sm font-medium text-slate-700 mb-2 truncate">
-                                Kilometraje (Diario)
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-car text-slate-400"></i>
+                        <div class="md:col-span-4 flex gap-3">
+                            <div class="flex-grow">
+                                <label for="inputKilometraje" class="block text-sm font-medium text-slate-700 mb-2 truncate">
+                                    Kilometraje (Diario)
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fa-solid fa-car text-slate-400"></i>
+                                    </div>
+                                    <input type="number" id="inputKilometraje" placeholder="0,00" min="0" step="0.01" oninput="toggleCPFields(); ocultarResultados();"
+                                        class="pl-9 pr-10 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <span class="text-slate-500 sm:text-sm">km</span>
+                                    </div>
                                 </div>
-                                <input type="number" id="inputKilometraje" placeholder="0,00" min="0" step="0.01" oninput="toggleCPFields(); ocultarResultados();"
-                                    class="pl-9 pr-12 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                    <span class="text-slate-500 sm:text-sm">km</span>
-                                </div>
+                            </div>
+                            <div class="w-20 flex-shrink-0">
+                                <label for="inputKmDias" class="block text-sm font-medium text-slate-700 mb-2 truncate" title="Días a aplicar">
+                                    Días Km
+                                </label>
+                                <input type="number" id="inputKmDias" value="1" min="1" step="1" disabled oninput="validarDiasKm(); ocultarResultados();"
+                                    class="w-full rounded-lg border border-slate-300 px-2 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center bg-slate-100 text-slate-500 cursor-not-allowed disabled:opacity-75">
                             </div>
                         </div>
 
@@ -142,7 +151,7 @@
                             </div>
                         </div>
 
-                        <div class="md:col-span-5">
+                        <div class="md:col-span-4">
                             <label for="inputGastosJustificados" class="block text-sm font-medium text-slate-700 mb-2 truncate">
                                 Gastos justificados
                             </label>
@@ -242,7 +251,7 @@
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
-                            <div class="w-full md:w-32 relative">
+                            <div class="w-full md:w-48 relative">
                                 <input type="number" id="inputCustomPrice" placeholder="Precio neto/día (€)" min="0" step="0.01"
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
@@ -679,8 +688,40 @@
             }
         }
 
+        function onDiasChanged() {
+            validarDiasKm();
+            renderDietas();
+            ocultarResultados();
+        }
+
+        function validarDiasKm() {
+            const kmInput = document.getElementById('inputKilometraje');
+            const diasInput = document.getElementById('inputDias');
+            const kmDiasInput = document.getElementById('inputKmDias');
+
+            let km = parseFloat(kmInput.value) || 0;
+            let totalDias = parseInt(diasInput.value) || 1;
+            let kmDias = parseInt(kmDiasInput.value);
+
+            if (isNaN(kmDias)) return;
+
+            // Limite superior: no más que el total de días
+            if (kmDias > totalDias) {
+                kmDiasInput.value = totalDias;
+            }
+
+            // Limite inferior/Borrado: Si pone 0 días, borramos el kilometraje automáticamente
+            if (kmDias <= 0 && km > 0) {
+                kmInput.value = '';
+                toggleCPFields(); // Apagará la sección
+            }
+        }
+
         function toggleCPFields() {
             const isEnabled = parseFloat(document.getElementById('inputKilometraje').value) > 0;
+            const kmDiasEl = document.getElementById('inputKmDias');
+
+            // Toggle para CPs
             ['inputCpOrigen', 'inputCpDestino'].forEach(id => {
                 const el = document.getElementById(id);
                 el.disabled = !isEnabled;
@@ -693,6 +734,18 @@
                     el.value = ''; 
                 }
             });
+
+            // Toggle para Km Días
+            kmDiasEl.disabled = !isEnabled;
+            if (isEnabled) {
+                kmDiasEl.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed', 'disabled:opacity-75');
+                kmDiasEl.classList.add('bg-white', 'text-slate-800');
+                if (!kmDiasEl.value || parseInt(kmDiasEl.value) <= 0) kmDiasEl.value = document.getElementById('inputDias').value;
+            } else {
+                kmDiasEl.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed', 'disabled:opacity-75');
+                kmDiasEl.classList.remove('bg-white', 'text-slate-800');
+                kmDiasEl.value = 1; // Reseteo visual
+            }
         }
 
         function toggleDietas() {
@@ -833,13 +886,13 @@
             let bucket = round2(importeBrutoPrueba - (params.dias * APP_CONFIG.limites.cacheMinimoDiario));
             let dData = Array.from({length: params.dias}, (_, i) => ({ dia: i+1, cache: APP_CONFIG.limites.cacheMinimoDiario, km: 0, dieta: 0, alquiler: 0 }));
 
-            // 1. Kilometraje
-            if (params.km > 0) {
+            // 1. Kilometraje (Limitado a los N días indicados)
+            if (params.km > 0 && params.kmDias > 0) {
                 let reqKm = params.km * APP_CONFIG.tasas.kilometraje;
-                let availableKm = Math.min(round2(reqKm * params.dias), bucket);
-                let perDayKm = round2(availableKm / params.dias); 
-                for (let i = 0; i < params.dias; i++) {
-                    let alloc = i === params.dias - 1 ? round2(availableKm - (perDayKm * (params.dias - 1))) : perDayKm;
+                let availableKm = Math.min(round2(reqKm * params.kmDias), bucket);
+                let perDayKm = round2(availableKm / params.kmDias); 
+                for (let i = 0; i < params.kmDias; i++) {
+                    let alloc = i === params.kmDias - 1 ? round2(availableKm - (perDayKm * (params.kmDias - 1))) : perDayKm;
                     dData[i].km = alloc; bucket = round2(bucket - alloc);
                 }
                 bucket = Math.max(0, bucket); 
@@ -975,6 +1028,11 @@
             let inputDias = Math.max(1, parseInt(document.getElementById('inputDias').value) || 1); 
             let inputIRPF = Math.max(APP_CONFIG.tasas.irpfGeneralMinimo, parseFloat(document.getElementById('inputIRPF').value) || APP_CONFIG.tasas.irpfGeneralMinimo);
             let inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            let inputKmDias = parseInt(document.getElementById('inputKmDias').value);
+            
+            if (isNaN(inputKmDias)) inputKmDias = inputKilometraje > 0 ? 1 : 0;
+            inputKmDias = Math.min(Math.max(inputKmDias, inputKilometraje > 0 ? 1 : 0), inputDias);
+
             let inputGastos = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
             let totalAlquiler = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
             
@@ -991,12 +1049,12 @@
             document.getElementById('inputIRPF').value = inputIRPF;
             document.getElementById('errorImporteBruto').classList.add('hidden'); document.getElementById('warningImporteNeto').classList.add('hidden');
 
-            const params = { dias: inputDias, irpf: inputIRPF, km: inputKilometraje, gastos: inputGastos, totalAlquiler: totalAlquiler, listaDietas: listaDietas, derechos: arrayDerechos };
+            const params = { dias: inputDias, irpf: inputIRPF, km: inputKilometraje, kmDias: inputKmDias, gastos: inputGastos, totalAlquiler: totalAlquiler, listaDietas: listaDietas, derechos: arrayDerechos };
             const minBrutoRequerido = inputDias * APP_CONFIG.limites.cacheMinimoDiario;
             
             function getReqExtras(p) {
                 let rExtras = 0;
-                if (p.km > 0) rExtras = round2(rExtras + round2(p.km * APP_CONFIG.tasas.kilometraje * p.dias));
+                if (p.km > 0 && p.kmDias > 0) rExtras = round2(rExtras + round2(p.km * APP_CONFIG.tasas.kilometraje * p.kmDias));
                 if (p.listaDietas && p.listaDietas.length > 0) {
                     let dReq = []; p.listaDietas.forEach(d => { for(let i = 0; i < d.days; i++) dReq.push(round2(d.price)); });
                     rExtras = round2(rExtras + dReq.slice(0, p.dias).reduce((a, b) => round2(a + b), 0));
@@ -1106,7 +1164,7 @@
                 <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Total a liquidar (Neto)' : 'Importe Bruto Resultante'}</span><span class="font-bold text-slate-800 ${calcMode === 'bruto' ? 'text-blue-700' : 'text-blue-600'}">${formatCurrency(calcMode === 'bruto' ? resultadoCalculo.netoCalculado : brutoFinal)}</span></div>
                 <div><span class="text-slate-500 block text-xs">Nº Días</span><span class="font-bold text-slate-800">${inputDias}</span></div>
                 <div><span class="text-slate-500 block text-xs">% retención IRPF general</span><span class="font-bold text-slate-800">${inputIRPF}%</span></div>
-                <div><span class="text-slate-500 block text-xs">Kilometraje Diario</span><span class="font-bold text-slate-800">${inputKilometraje} km</span></div>
+                <div><span class="text-slate-500 block text-xs">Kilometraje Diario</span><span class="font-bold text-slate-800">${inputKilometraje} km${inputKilometraje > 0 ? ` (${inputKmDias} días)` : ''}</span></div>
                 <div><span class="text-slate-500 block text-xs">Gastos Justificados</span><span class="font-bold text-slate-800">${formatCurrency(inputGastos)}</span></div>
                 <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Dietas</span><span class="font-bold text-slate-800 text-sm">${listaDietas.length ? listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>') : 'Ninguna añadida'}</span></div>
                 <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Material de Alquiler</span><span class="font-bold text-slate-800 text-sm">${listaMaterial.length ? listaMaterial.map(m => `${m.qty}x ${m.name}`).join(', ') : 'Ninguno añadido'}</span></div>

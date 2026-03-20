@@ -164,11 +164,21 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fa-solid fa-car text-slate-400" id="iconKm"></i>
                                 </div>
-                                <input type="number" id="inputKilometraje" placeholder="0,00" min="0" step="0.01" oninput="toggleCPFields(); ocultarResultados();"
+                                <input type="number" id="inputKilometraje" placeholder="0,00" min="0" step="0.01" oninput="handleKmChange(); ocultarResultados();"
                                     class="pl-9 pr-12 w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                     <span class="text-slate-500 sm:text-sm">km</span>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="inputKmDias" class="block text-sm font-medium text-slate-700 mb-2 truncate">
+                                Días Km
+                            </label>
+                            <div class="relative">
+                                <input type="number" id="inputKmDias" value="1" min="0" step="1" oninput="handleKmDiasChange(); ocultarResultados();"
+                                    class="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                             </div>
                         </div>
 
@@ -198,9 +208,9 @@
                             </div>
                         </div>
 
-                        <div class="md:col-span-5">
+                        <div class="md:col-span-3">
                             <label for="inputGastosJustificados" class="block text-sm font-medium text-slate-700 mb-2 truncate">
-                                Gastos justificados <span class="text-[10px] text-slate-400 font-normal">(Suplidos)</span>
+                                Gastos <span class="text-[10px] text-slate-400 font-normal">(Suplidos)</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -298,7 +308,7 @@
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
-                            <div class="w-full md:w-32 relative">
+                            <div class="w-full md:w-48 relative">
                                 <input type="number" id="inputCustomPrice" placeholder="Precio neto/día (€)" min="0" step="0.01"
                                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); agregarMaterial(); }"
                                     class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
@@ -414,7 +424,6 @@
                     </h2>
                     
                     <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200 shadow-sm break-inside-avoid">
-                        <!-- Cambio de clases para que Vista Detallada sea la seleccionada visualmente por defecto -->
                         <button id="btnViewAgrupada" onclick="setViewMode('agrupada')" type="button" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all">Vista Agrupada</button>
                         <button id="btnViewDetallada" onclick="setViewMode('detallada')" type="button" class="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-md bg-white shadow-sm text-blue-600 transition-all">Desglose por Día</button>
                     </div>
@@ -601,7 +610,6 @@
 
         let globalSimulationResult = null;
         let calcMode = 'bruto';
-        // Cambio aquí: 'detallada' en lugar de 'agrupada'
         let currentViewMode = 'detallada'; 
         let listaMaterial = [];
         let listaDietas = [];
@@ -700,6 +708,7 @@
             
             const banner = document.getElementById('autonomoBanner');
             const inputKm = document.getElementById('inputKilometraje');
+            const inputKmDias = document.getElementById('inputKmDias');
             const selectDieta = document.getElementById('selectDieta');
             const inputDietaQty = document.getElementById('inputDietaQty');
             const btnDieta = document.getElementById('btnAñadirDieta');
@@ -722,7 +731,6 @@
                 inputKm.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
                 iconKm.classList.remove('text-slate-400');
                 iconKm.classList.add('text-slate-300');
-                toggleCPFields(); 
                 
                 // Block Dietas
                 selectDieta.disabled = true;
@@ -749,6 +757,20 @@
                 iconKm.classList.remove('text-slate-300');
                 iconKm.classList.add('text-slate-400');
                 
+                inputKmDias.disabled = false;
+                inputKmDias.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                
+                let currentKmDias = parseInt(inputKmDias.value);
+                if (isNaN(currentKmDias) || currentKmDias === 0) {
+                    if (parseFloat(inputKm.value) > 0) {
+                        inputKmDias.value = dias; // Restaurar a máximo si hay Km escrito
+                    } else {
+                        inputKmDias.value = dias; // Por defecto emparejar con los días totales
+                    }
+                } else if (currentKmDias > dias) {
+                    inputKmDias.value = dias; // Limitar al máximo
+                }
+
                 selectDieta.disabled = false;
                 selectDieta.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
                 inputDietaQty.disabled = false;
@@ -759,7 +781,43 @@
                 iconDieta.classList.add('text-slate-400');
             }
             
+            toggleCPFields();
             actualizarInterfazPI();
+        }
+
+        function handleKmChange() {
+            const elKm = document.getElementById('inputKilometraje');
+            const elDias = document.getElementById('inputKmDias');
+            const mainDias = parseInt(document.getElementById('inputDias').value) || 1;
+
+            if (parseFloat(elKm.value) > 0 && (!elDias.value || parseInt(elDias.value) === 0)) {
+                elDias.value = mainDias;
+            }
+            toggleCPFields();
+        }
+
+        function handleKmDiasChange() {
+            let el = document.getElementById('inputKmDias');
+            let mainDias = parseInt(document.getElementById('inputDias').value) || 1;
+            let val = parseInt(el.value);
+
+            if (isNaN(val)) return; // Permitir al usuario borrar antes de escribir otro número
+
+            if (val < 0) {
+                val = 0;
+                el.value = 0;
+            }
+            if (val > mainDias) {
+                val = mainDias;
+                el.value = mainDias;
+            }
+
+            if (val === 0) {
+                document.getElementById('inputKilometraje').value = '';
+                toggleCPFields();
+            } else if (val > 0 && parseFloat(document.getElementById('inputKilometraje').value) > 0) {
+                toggleCPFields(); // Asegurar que los campos CP se activan
+            }
         }
 
         function initApp() {
@@ -848,11 +906,29 @@
 
         function toggleCPFields() {
             const valKm = parseFloat(document.getElementById('inputKilometraje').value) || 0;
-            const isEnabled = valKm > 0;
+            const inputDias = parseInt(document.getElementById('inputDias').value);
+            const isAutonomo = isNaN(inputDias) || inputDias === 0;
+
+            const elKmDias = document.getElementById('inputKmDias');
+            const kmEnabled = valKm > 0 && !isAutonomo;
+
+            elKmDias.disabled = !kmEnabled;
+            if (kmEnabled) {
+                elKmDias.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed', 'disabled:opacity-75');
+                elKmDias.classList.add('bg-white', 'text-slate-800');
+            } else {
+                elKmDias.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed', 'disabled:opacity-75');
+                elKmDias.classList.remove('bg-white', 'text-slate-800');
+                if (isAutonomo) elKmDias.value = ''; 
+            }
+
+            const valKmDias = parseInt(elKmDias.value) || 0;
+            const cpEnabled = kmEnabled && valKmDias > 0;
+            
             ['inputCpOrigen', 'inputCpDestino'].forEach(id => {
                 const el = document.getElementById(id);
-                el.disabled = !isEnabled;
-                if (isEnabled) {
+                el.disabled = !cpEnabled;
+                if (cpEnabled) {
                     el.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed', 'disabled:opacity-75');
                     el.classList.add('bg-white', 'text-slate-800');
                 } else {
@@ -871,7 +947,7 @@
 
         function agregarDieta() {
             const dias = parseInt(document.getElementById('inputDias').value);
-            if (isNaN(dias) || dias === 0) return; // Protección extra modo autónomo
+            if (isNaN(dias) || dias === 0) return; 
             
             const select = document.getElementById('selectDieta');
             const qtyInput = document.getElementById('inputDietaQty');
@@ -1009,14 +1085,16 @@
             let bucket = round2(importeBrutoPrueba - (iterDias * cacheMinimo));
             let dData = Array.from({length: iterDias}, (_, i) => ({ dia: params.isAutonomo ? 'Autónomo/Sociedad' : i+1, cache: cacheMinimo, km: 0, dieta: 0, alquiler: 0 }));
 
-            // 1. Kilometraje
-            if (params.km > 0 && !params.isAutonomo) {
+            // 1. Kilometraje (Adaptado a params.kmDias)
+            if (params.km > 0 && params.kmDias > 0 && !params.isAutonomo) {
                 let reqKm = params.km * APP_CONFIG.tasas.kilometraje;
-                let availableKm = Math.min(round2(reqKm * iterDias), bucket);
-                let perDayKm = round2(availableKm / iterDias); 
-                for (let i = 0; i < iterDias; i++) {
-                    let alloc = i === iterDias - 1 ? round2(availableKm - (perDayKm * (iterDias - 1))) : perDayKm;
-                    dData[i].km = alloc; bucket = round2(bucket - alloc);
+                let availableKm = Math.min(round2(reqKm * params.kmDias), bucket);
+                let perDayKm = round2(availableKm / params.kmDias); 
+                for (let i = 0; i < params.kmDias; i++) {
+                    if (i >= iterDias) break;
+                    let alloc = i === params.kmDias - 1 ? round2(availableKm - (perDayKm * (params.kmDias - 1))) : perDayKm;
+                    dData[i].km = alloc; 
+                    bucket = round2(bucket - alloc);
                 }
                 bucket = Math.max(0, bucket); 
             }
@@ -1166,6 +1244,7 @@
             const isAutonomo = parseInt(document.getElementById('inputDias').value) === 0;
             const inputDias = isAutonomo ? 0 : parseInt(document.getElementById('inputDias').value);
             const inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
+            const inputKmDias = isAutonomo ? 0 : (parseInt(document.getElementById('inputKmDias').value) || 0);
             const irpfStr = document.getElementById('inputIRPF').value.replace('.', ',');
 
             const trGen = (icon, title, b, c, cost, ss, irpf, n, ext, bgClass='') => `
@@ -1251,9 +1330,8 @@
                 // Render filas unificadas de Extras
                 if (aggrDietas.bruto > 0) html += trGen('fa-utensils', 'Dietas', aggrDietas.bruto, aggrDietas.comision, aggrDietas.coste, '-', '-', aggrDietas.aLiquidar);
                 if (aggrKm.bruto > 0) {
-                    // Cálculo inteligente para el label (evitar mostrar 149.99 km en lugar de 150 km por redondeos)
                     let kmCalculadoNum = aggrKm.bruto / APP_CONFIG.tasas.kilometraje;
-                    if (Math.abs(kmCalculadoNum - (inputKilometraje * inputDias)) < 0.1) kmCalculadoNum = inputKilometraje * inputDias;
+                    if (Math.abs(kmCalculadoNum - (inputKilometraje * inputKmDias)) < 0.1) kmCalculadoNum = inputKilometraje * inputKmDias;
                     let kmStr = round2(kmCalculadoNum).toString().replace('.', ',');
                     html += trGen('fa-car', `Kilometraje (${kmStr} km)`, aggrKm.bruto, aggrKm.comision, aggrKm.coste, '-', '-', aggrKm.aLiquidar);
                 }
@@ -1286,7 +1364,7 @@
                     
                     let html = `<div class="bg-blue-50/40 py-2 px-4 font-bold text-blue-800 text-sm border-b border-blue-100 flex items-center"><i class="fa-solid ${iconTitle} mr-2"></i>${dayTitle}</div><div class="flex flex-col divide-y divide-slate-100">`;
                     
-                    let titleCache = isDiaAutonomo ? `Honorarios <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Retención)</span>` : `Caché <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Retención)</span>`;
+                    let titleCache = isDiaAutonomo ? `Honorarios <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% Ret.)</span>` : `Caché <span class="text-[10px] text-slate-500 font-normal ml-1">(${irpfStr}% IRPF)</span>`;
                     html += trGen('fa-microphone', titleCache, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial === 0 ? '-' : resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar, '', 'hover:bg-slate-50');
                     
                     if (resDia.dataOriginal.km > 0 && !isAutonomo) {
@@ -1331,6 +1409,8 @@
             let inputIRPF = isNaN(rawIRPF) ? minIRPF : Math.max(minIRPF, rawIRPF);
             
             let inputKilometraje = isAutonomo ? 0 : (parseFloat(document.getElementById('inputKilometraje').value) || 0);
+            let inputKmDias = isAutonomo ? 0 : (parseInt(document.getElementById('inputKmDias').value) || 0);
+            
             let inputGastos = parseFloat(document.getElementById('inputGastosJustificados').value) || 0;
             let totalAlquiler = listaMaterial.reduce((acc, item) => acc + (item.price * item.qty), 0);
             
@@ -1346,12 +1426,14 @@
             document.getElementById('inputIRPF').value = inputIRPF;
             document.getElementById('errorImporteBruto').classList.add('hidden'); document.getElementById('warningImporteNeto').classList.add('hidden');
 
-            const params = { dias: inputDias, isAutonomo: isAutonomo, calcDias: calcDias, irpf: inputIRPF, km: inputKilometraje, gastos: inputGastos, totalAlquiler: totalAlquiler, listaDietas: isAutonomo ? [] : listaDietas, derechos: arrayDerechos };
+            const params = { dias: inputDias, isAutonomo: isAutonomo, calcDias: calcDias, irpf: inputIRPF, km: inputKilometraje, kmDias: inputKmDias, gastos: inputGastos, totalAlquiler: totalAlquiler, listaDietas: isAutonomo ? [] : listaDietas, derechos: arrayDerechos };
             const minBrutoRequerido = isAutonomo ? 0 : inputDias * APP_CONFIG.limites.cacheMinimoDiario;
             
             function getReqExtras(p) {
                 let rExtras = 0;
-                if (p.km > 0 && !p.isAutonomo) rExtras = round2(rExtras + round2(p.km * APP_CONFIG.tasas.kilometraje * p.calcDias));
+                if (p.km > 0 && p.kmDias > 0 && !p.isAutonomo) {
+                    rExtras = round2(rExtras + round2(p.km * APP_CONFIG.tasas.kilometraje * p.kmDias));
+                }
                 if (p.listaDietas && p.listaDietas.length > 0 && !p.isAutonomo) {
                     let dReq = []; p.listaDietas.forEach(d => { for(let i = 0; i < d.days; i++) dReq.push(round2(d.price)); });
                     rExtras = round2(rExtras + dReq.slice(0, p.calcDias).reduce((a, b) => round2(a + b), 0));
@@ -1454,7 +1536,7 @@
             }
 
             const diasSummaryStr = isAutonomo ? '0 (Modo Autónomo/Sociedad)' : inputDias;
-            const kmSummaryStr = isAutonomo ? '0 km (No aplica)' : `${inputKilometraje} km`;
+            const kmSummaryStr = isAutonomo ? '0 km (No aplica)' : (inputKilometraje > 0 && inputKmDias > 0 ? `${inputKilometraje} km x ${inputKmDias} día(s)` : '0 km');
             const dietasSummaryStr = isAutonomo ? 'No aplica' : (listaDietas.length ? listaDietas.map(d => `${d.days}x ${d.name}`).join('<br>') : 'Ninguna añadida');
 
             document.getElementById('pdfSummaryContent').innerHTML = `
@@ -1462,7 +1544,7 @@
                 <div><span class="text-slate-500 block text-xs">${calcMode === 'bruto' ? 'Total a liquidar (Neto)' : 'Importe Bruto Resultante'}</span><span class="font-bold text-slate-800 ${calcMode === 'bruto' ? 'text-blue-700' : 'text-blue-600'}">${formatCurrency(calcMode === 'bruto' ? resultadoCalculo.netoCalculado : brutoFinal)}</span></div>
                 <div><span class="text-slate-500 block text-xs">Nº Días</span><span class="font-bold text-slate-800">${diasSummaryStr}</span></div>
                 <div><span class="text-slate-500 block text-xs">% retención IRPF general</span><span class="font-bold text-slate-800">${inputIRPF}%</span></div>
-                <div><span class="text-slate-500 block text-xs">Kilometraje Diario</span><span class="font-bold text-slate-800">${kmSummaryStr}</span></div>
+                <div><span class="text-slate-500 block text-xs">Kilometraje</span><span class="font-bold text-slate-800">${kmSummaryStr}</span></div>
                 <div><span class="text-slate-500 block text-xs">Gastos Justificados</span><span class="font-bold text-slate-800">${formatCurrency(inputGastos)}</span></div>
                 <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Dietas</span><span class="font-bold text-slate-800 text-sm">${dietasSummaryStr}</span></div>
                 <div class="col-span-2 md:col-span-1 mt-2 pt-2 border-t border-slate-200"><span class="text-slate-500 block text-xs">Material de Alquiler</span><span class="font-bold text-slate-800 text-sm">${listaMaterial.length ? listaMaterial.map(m => `${m.qty}x ${m.name}`).join(', ') : 'Ninguno añadido'}</span></div>
@@ -1516,6 +1598,7 @@
             const inputKilometraje = parseFloat(document.getElementById('inputKilometraje').value) || 0;
             const inputDias = parseInt(document.getElementById('inputDias').value) || 0;
             const isAutonomo = inputDias === 0;
+            const inputKmDias = isAutonomo ? 0 : (parseInt(document.getElementById('inputKmDias').value) || 0);
 
             const thS = "padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: right; white-space: nowrap;";
             const thFirst = "padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: left; white-space: nowrap;";
@@ -1597,7 +1680,7 @@
                 if (aggrDietas.bruto > 0) addRow('Dietas', aggrDietas.bruto, aggrDietas.comision, aggrDietas.coste, '-', '-', aggrDietas.aLiquidar);
                 if (aggrKm.bruto > 0) {
                     let kmCalculadoNum = aggrKm.bruto / APP_CONFIG.tasas.kilometraje;
-                    if (Math.abs(kmCalculadoNum - (inputKilometraje * inputDias)) < 0.1) kmCalculadoNum = inputKilometraje * inputDias;
+                    if (Math.abs(kmCalculadoNum - (inputKilometraje * inputKmDias)) < 0.1) kmCalculadoNum = inputKilometraje * inputKmDias;
                     let kmStr = round2(kmCalculadoNum).toString().replace('.', ',');
                     addRow(`Kilometraje (${kmStr} km)`, aggrKm.bruto, aggrKm.comision, aggrKm.coste, '-', '-', aggrKm.aLiquidar);
                 }
@@ -1621,7 +1704,7 @@
                     let dayTitleClip = isDiaAutonomo ? 'Factura Única (Autónomo/Sociedad)' : `Día ${resDia.dataOriginal.dia}`;
                     html += `<tr><td colspan="7" style="padding: 10px 16px; font-weight: bold; color: #1e40af; background-color: #eff6ff; border-bottom: 1px solid #cbd5e1; text-align: left;">${dayTitleClip}</td></tr>`;
                     
-                    let titleCacheClip = isDiaAutonomo ? `Honorarios (${irpfStrClip}% Retención)` : `Caché (${irpfStrClip}% Retención)`;
+                    let titleCacheClip = isDiaAutonomo ? `Honorarios (${irpfStrClip}% Ret.)` : `Caché (${irpfStrClip}% IRPF)`;
                     addRow(titleCacheClip, resDia.cache.bruto, resDia.cache.comision, resDia.cache.coste, resDia.cache.segSocial === 0 ? '-' : resDia.cache.segSocial, resDia.cache.irpf, resDia.cache.aLiquidar);
                     
                     if (resDia.dataOriginal.km > 0 && !isAutonomo) {
